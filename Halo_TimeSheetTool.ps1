@@ -3,7 +3,7 @@ Add-Type -AssemblyName Microsoft.VisualBasic
 Add-Type -AssemblyName System.Windows.Forms
 
 # 1. Configuration
-$HaloUrl = "https://theinstillery.halopsa.com"  # UPDATE THIS
+$HaloUrl = "https://theinstillery.halopsa.com"
 
 # 2. XAML Definition
 [xml]$XAML = @"
@@ -255,7 +255,7 @@ $LoadBtn.Add_Click({
                 try {
                     $ActionsUri = "$HaloUrl/api/Actions?ticket_id=$($Ticket.id)&agentonly=true"
                     $ActionsResp = Invoke-RestMethod -Uri $ActionsUri -Method Get -Headers $Headers
-                    $ActionsList = $ActionsResp.actions | where {$_.who_agentid -eq $AgentID}
+                    $ActionsList = $ActionsResp.actions | Where-Object {$_.who_agentid -eq $AgentID}
 
                     foreach ($Act in $ActionsList) {
                         $ActDate = ([datetime]$Act.datetime).ToLocalTime()
@@ -372,7 +372,7 @@ $SubmitBtn.Add_Click({
                     datetime      = $EntryDate
                     outcome_id    = "132"
                     new_status    = "61"
-                    chargerate    = $SelectedChargeRate  # This now dynamically updates!
+                    chargerate    = $SelectedChargeRate
                 }
 
                 $ActionPayload = "[$($ActionObj | ConvertTo-Json -Compress)]"
