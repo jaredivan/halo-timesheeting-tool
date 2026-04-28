@@ -335,8 +335,9 @@ $SubmitBtn.Add_Click({
     $CurrentData = $TimesheetGrid.ItemsSource
     $PostCount = 0
     $ErrorCount = 0
+    $TokenExpired = $false
 
-    foreach ($CurrentRow in $CurrentData) {
+    :RowLoop foreach ($CurrentRow in $CurrentData) {
         $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID }
         
         $Days = @("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -386,6 +387,14 @@ $SubmitBtn.Add_Click({
                     $HasTimeProp = "${Day}HasTime"
                     $CurrentRow.$HasTimeProp = $true 
                 } catch {
+                    # Check for a 401 Unauthorized error (token expired)
+                    if ($_.Exception.Response.StatusCode -eq 'Unauthorized' -or $_.Exception.Message -match "401") {
+                        [System.Windows.MessageBox]::Show("Your Bearer Token has expired or is invalid.`n`nPlease paste a new token at the top and try again. (Entries already posted will be preserved and won't double-bill).", "Token Expired", 0, 16)
+                        $TokenExpired = $true
+                        break RowLoop
+                    }
+
+                    # For other errors, show the message but allow the loop to continue for remaining entries
                     $ErrorMessage = $_.ErrorDetails.Message -join "`n"
                     [System.Windows.MessageBox]::Show("Failed to post time for Ticket $($CurrentRow.TicketID) on $Day.`n$ErrorMessage", "Error")
                     $ErrorCount++
@@ -407,7 +416,10 @@ $SubmitBtn.Add_Click({
 
     &$UpdateTotals 
     
-    if ($ErrorCount -eq 0) {
+    if ($TokenExpired) {
+        $StatusText.Text = "Submission halted. Token Expired. ($PostCount entries were successfully saved)."
+        $StatusText.Foreground = "Red"
+    } elseif ($ErrorCount -eq 0) {
         $StatusText.Text = "Success! Created $PostCount new time entries."
         $StatusText.Foreground = "Green"
     } else {
