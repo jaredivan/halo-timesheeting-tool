@@ -391,6 +391,17 @@ $SubmitBtn.Add_Click({
                     $ErrorCount++
                 }
             }
+            elseif ($Diff -lt 0) {
+                # 1. Alert the user
+                $WarnMsg = "Cannot reduce time for Ticket $($CurrentRow.TicketID) on $Day.`n`nPlease edit historical time directly in HaloPSA. This cell will now be reset to its original value of $OriginalVal."
+                [System.Windows.MessageBox]::Show($WarnMsg, "Invalid Entry", 0, 48) # 0 = OK button, 48 = Warning Icon
+                
+                # 2. Reset the grid cell visually
+                $CurrentRow.$Day = $OriginalVal
+                
+                # 3. Increment error count so the status bar reflects the failure
+                $ErrorCount++
+            }
         }
     }
 
