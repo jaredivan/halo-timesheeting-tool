@@ -89,7 +89,8 @@ $HaloUrl = "https://theinstillery.halopsa.com"
             <Label Content="Default Note:" VerticalAlignment="Center" FontWeight="Bold"/>
             <TextBox Name="NoteBox" Width="250" Margin="5,0,15,0" VerticalAlignment="Center" Text=""/>
             
-            <CheckBox Name="PromptNotesChk" Content="Prompt for custom note per entry on submit" VerticalAlignment="Center" FontWeight="Bold"/>
+            <CheckBox Name="PromptNotesChk" Content="Prompt for custom note per entry on submit" Margin="0,0,15,0" VerticalAlignment="Center" FontWeight="Bold"/>
+            <CheckBox Name="EnforceTimeBlocksChk" Content="Enforce 0.25 time blocks" IsChecked="True" VerticalAlignment="Center" FontWeight="Bold"/>
         </StackPanel>
 
         <Button Name="SubmitBtn" Grid.Row="5" Content="Submit Time Entries" Height="40" Margin="0,15,0,0" Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="14"/>
@@ -111,6 +112,7 @@ $TimesheetGrid      = $Window.FindName("TimesheetGrid")
 $StatusText         = $Window.FindName("StatusText")
 $NoteBox            = $Window.FindName("NoteBox")
 $PromptNotesChk     = $Window.FindName("PromptNotesChk")
+$EnforceTimeBlocksChk = $Window.FindName("EnforceTimeBlocksChk")
 $ChargeCodeCombo    = $Window.FindName("ChargeCodeCombo")
 
 # Footer Totals Elements
@@ -142,6 +144,61 @@ $UpdateTotals = {
     try {
         $TimesheetGrid.Items.Refresh()
     } catch { }
+}
+
+# HELPER FUNCTION: Multi-line Input Box
+function Show-MultiLineInputBox {
+    param (
+        [string]$Title = "Input",
+        [string]$PromptMessage,
+        [string]$DefaultText = ""
+    )
+
+    [xml]$InputXAML = @"
+    <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            Height="300" Width="450" WindowStartupLocation="CenterScreen"
+            ResizeMode="NoResize" Topmost="True">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Name="PromptTextBlock" Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap" />
+            <TextBox Name="InputTextBox" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Name="OkButton" Content="OK" Width="75" Margin="0,0,10,0" IsDefault="True" />
+                <Button Name="CancelButton" Content="Cancel" Width="75" IsCancel="True" />
+            </StackPanel>
+        </Grid>
+    </Window>
+"@
+    $InputReader = (New-Object System.Xml.XmlNodeReader $InputXAML)
+    $InputWindow = [Windows.Markup.XamlReader]::Load($InputReader)
+    
+    $InputWindow.Title = $Title
+    $InputWindow.FindName("PromptTextBlock").Text = $PromptMessage
+    
+    $InputTextBox = $InputWindow.FindName("InputTextBox")
+    $InputTextBox.Text = $DefaultText
+    
+    $OkBtn = $InputWindow.FindName("OkButton")
+    $OkBtn.Add_Click({ $InputWindow.DialogResult = $true })
+    
+    # Auto-focus and select text when the window appears
+    $InputWindow.Add_ContentRendered({
+        $InputTextBox.Focus() | Out-Null
+        $InputTextBox.SelectAll()
+    })
+    
+    $Result = $InputWindow.ShowDialog()
+    
+    if ($Result) {
+        return $InputTextBox.Text
+    } else {
+        return $null
+    }
 }
 
 $TimesheetGrid.Add_CellEditEnding({
@@ -279,6 +336,7 @@ $LoadBtn.Add_Click({
             # Map the new properties directly from the ticket object
             $RowObj = [PSCustomObject]@{
                 TicketID      = $Ticket.id
+                TicketTypeID  = $Ticket.tickettype_id
                 ClientName    = if ($Ticket.client_name) { $Ticket.client_name } else { "Unassigned" }
                 Project       = if ($Ticket.parent_subject) { $Ticket.parent_subject -replace " - Parent Project", '' } else { "None" }
                 TicketSummary = if ($Ticket.summary -match "-\s+(\D.*)$") { $Matches[1].Trim() } else { $Ticket.summary }
@@ -348,6 +406,13 @@ $SubmitBtn.Add_Click({
                 $StatusText.Foreground = "DarkOrange"
                 continue 
             }
+
+            if ($EnforceTimeBlocksChk.IsChecked -and (([decimal]$CurrentVal % [decimal]0.25) -ne 0)) {
+                $WarnMsg = "Time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day was skipped."
+                [System.Windows.MessageBox]::Show($WarnMsg, "Invalid Time Entry", 0, 48)
+                $ErrorCount++
+                continue
+            }
             
             $OriginalVal = [double]($OriginalRow.$Day)
             $Diff = $CurrentVal - $OriginalVal
@@ -357,22 +422,38 @@ $SubmitBtn.Add_Click({
                 $EntryDate = $Global:LoadedDates[$Day].AddHours(17).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss")
 
                 # CUSTOM NOTE PROMPT LOGIC
-                 $FinalNote = $DefaultNote
-                 if ($PromptNotesChk.IsChecked) {
-                     $PromptMsg = "Adding $Diff hours on $Day to:`n'$($CurrentRow.Project)'.`n`nEnter your specific note for this entry:"
-                     $UserInput = [Microsoft.VisualBasic.Interaction]::InputBox($PromptMsg, "Custom Time Entry Note", $DefaultNote)
-                     if (-not [string]::IsNullOrWhiteSpace($UserInput)) {
-                         $FinalNote = $UserInput
-                     }
-                 }
+                $FinalNote = $DefaultNote
+                if ($PromptNotesChk.IsChecked) {
+                    $PromptMsg = "Adding $Diff hours on $Day to:`nProject: $($CurrentRow.Project)`nTicket Summary: $($CurrentRow.TicketSummary)`n`nEnter your specific note for this entry:"
+                    
+                    # Call the newly added WPF multi-line function instead of the VB InputBox
+                    $UserInput = Show-MultiLineInputBox -Title "Custom Time Entry Note" -PromptMessage $PromptMsg -DefaultText $DefaultNote
+                    
+                    if (-not [string]::IsNullOrWhiteSpace($UserInput)) {
+                        $FinalNote = $UserInput
+                    }
+                }
+
+                # Dynamically set Outcome and Status based on Ticket Type
+                $CurrentTicketType = $OriginalRow.TicketTypeID
+
+                if ($CurrentTicketType -eq 100) {
+                    # Consulting Ticket
+                    $SubmitOutcomeId = "269"
+                    $SubmitStatus    = 2
+                } else {
+                    # Project Ticket (Default)
+                    $SubmitOutcomeId = "132"
+                    $SubmitStatus    = 61
+                }
 
                 $ActionObj = @{
                     ticket_id     = $CurrentRow.TicketID
                     note          = $FinalNote
                     timetaken     = $HoursToLog
                     datetime      = $EntryDate
-                    outcome_id    = "132"
-                    new_status    = "61"
+                    outcome_id    = $SubmitOutcomeId
+                    new_status    = $SubmitStatus
                     chargerate    = $SelectedChargeRate
                 }
 
