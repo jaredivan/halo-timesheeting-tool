@@ -1,0 +1,12 @@
+[x] consulting ticket's don't have a 'default charge code' like other project tickets -> added second 'charge code for consulting' selection box in the tool
+
+[x] if fail to post e.g. token expired, option to continue trying or cancel all posting
+
+[x] custom note or general note option per ticket up front (plus per-entry 'Override' checkbox for targeted custom note & custom charge code popup)
+
+[ ] Add support for non-billable internal timesheet charge codes/categories (e.g., Timesheet>Admin, Timesheet>Internal Meeting, Timesheet>Peer Support, Timesheet>Services Non Billable, Timesheet>Training). Note: logged via Halo timesheet section rather than ticket action endpoints, so API calls and mechanism may differ.
+
+[ ] Add option to set daily start/end working times for each day.
+    - Endpoint: POST /api/Timesheet?utcoffset=-720 (where utcoffset is minutes from UTC, e.g. -720 for NZST/UTC+12)
+    - Payload sample: [{"date":"2026-07-31T00:00:00.000Z","agent_id":220,"start_time":"2026-07-30T21:00:00.000Z","end_time":"2026-07-31T06:30:00.000Z"}]
+    - Note: start_time and end_time must be converted to UTC0 ISO timestamps based on local time and UTC offset.
