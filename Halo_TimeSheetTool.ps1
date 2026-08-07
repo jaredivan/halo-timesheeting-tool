@@ -45,36 +45,44 @@ $HaloUrl = "https://theinstillery.halopsa.com"
 
         <DataGrid Name="TimesheetGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" AlternatingRowBackground="#F0F0F0" HeadersVisibility="Column" HorizontalScrollBarVisibility="Auto">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="Auto"/>
-                <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" IsReadOnly="True" Width="Auto"/>
-                <DataGridTextColumn Header="Project" Binding="{Binding Project}" IsReadOnly="True" Width="Auto"/>
-                <DataGridTextColumn Header="Ticket Summary" Binding="{Binding TicketSummary}" IsReadOnly="True" Width="Auto"/>
-                <DataGridCheckBoxColumn Header="Override" Binding="{Binding HasOverride}" Width="60"/>
-                <DataGridTextColumn Header="Ticket Note" Binding="{Binding TicketNote}" Width="150"/>
-                
-                <DataGridTextColumn Header="Mon" Binding="{Binding Mon}" Width="60">
+                <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="45"/>
+                <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" IsReadOnly="True" Width="*" MinWidth="100">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Project" Binding="{Binding Project}" IsReadOnly="True" Width="*" MinWidth="150">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Ticket Summary" Binding="{Binding TicketSummary}" IsReadOnly="True" Width="*" MinWidth="150">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridCheckBoxColumn Header="Override" Binding="{Binding HasOverride}" Width="55"/>
+                <DataGridTextColumn Header="Ticket Note" Binding="{Binding TicketNote}" Width="*" MinWidth="90">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Mon" Binding="{Binding Mon}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding MonHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Tue" Binding="{Binding Tue}" Width="60">
+                <DataGridTextColumn Header="Tue" Binding="{Binding Tue}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding TueHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Wed" Binding="{Binding Wed}" Width="60">
+                <DataGridTextColumn Header="Wed" Binding="{Binding Wed}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding WedHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Thu" Binding="{Binding Thu}" Width="60">
+                <DataGridTextColumn Header="Thu" Binding="{Binding Thu}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding ThuHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Fri" Binding="{Binding Fri}" Width="60">
+                <DataGridTextColumn Header="Fri" Binding="{Binding Fri}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding FriHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Sat" Binding="{Binding Sat}" Width="60">
+                <DataGridTextColumn Header="Sat" Binding="{Binding Sat}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding SatHasTime}" Value="True"><Setter Property="Background" Value="#E2E3E5"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Sun" Binding="{Binding Sun}" Width="60">
+                <DataGridTextColumn Header="Sun" Binding="{Binding Sun}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding SunHasTime}" Value="True"><Setter Property="Background" Value="#E2E3E5"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
                 </DataGridTextColumn>
-                
-                <DataGridTextColumn Header="Row Total" Binding="{Binding Total}" IsReadOnly="True" Width="70" FontWeight="Bold"/>
+
+                <DataGridTextColumn Header="Row Total" Binding="{Binding Total}" IsReadOnly="True" Width="60" FontWeight="Bold"/>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -101,8 +109,6 @@ $HaloUrl = "https://theinstillery.halopsa.com"
 
             <Label Content="Default Note:" VerticalAlignment="Center" FontWeight="Bold"/>
             <TextBox Name="NoteBox" Width="220" Margin="5,0,15,0" VerticalAlignment="Center" Text=""/>
-            
-            <CheckBox Name="EnforceTimeBlocksChk" Content="Enforce 0.25 time blocks" IsChecked="True" VerticalAlignment="Center" FontWeight="Bold"/>
         </StackPanel>
 
         <Button Name="SubmitBtn" Grid.Row="5" Content="Submit Time Entries" Height="40" Margin="0,15,0,0" Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="14"/>
@@ -124,7 +130,6 @@ $SubmitBtn          = $Window.FindName("SubmitBtn")
 $TimesheetGrid      = $Window.FindName("TimesheetGrid")
 $StatusText         = $Window.FindName("StatusText")
 $NoteBox            = $Window.FindName("NoteBox")
-$EnforceTimeBlocksChk = $Window.FindName("EnforceTimeBlocksChk")
 $ChargeCodeCombo    = $Window.FindName("ChargeCodeCombo")
 $ConsultingChargeCodeCombo = $Window.FindName("ConsultingChargeCodeCombo")
 
@@ -303,7 +308,7 @@ function Show-HowItWorksWindow {
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Ticket Note Column:</Run> Enter specific notes per ticket directly up front in the grid. Blank notes fall back to the 'Default Note' box.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">Enforce 0.25 Time Blocks:</Run> Ensures time is entered in 15-minute (0.25h) increments.
+                                - <Run FontWeight="Bold">0.25 Time Block Enforcement:</Run> All time entries must be in 15-minute (0.25h) increments. Any entry that isn't will be rejected with a warning and skipped on submit.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -607,7 +612,7 @@ $SubmitBtn.Add_Click({
                 continue 
             }
 
-            if ($EnforceTimeBlocksChk.IsChecked -and (([decimal]$CurrentVal % [decimal]0.25) -ne 0)) {
+            if (([decimal]$CurrentVal % [decimal]0.25) -ne 0) {
                 $WarnMsg = "Time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day was skipped."
                 [System.Windows.MessageBox]::Show($WarnMsg, "Invalid Time Entry", 0, 48)
                 $ErrorCount++
