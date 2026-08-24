@@ -45,44 +45,64 @@ $HaloUrl = "https://theinstillery.halopsa.com"
 
         <DataGrid Name="TimesheetGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" AlternatingRowBackground="#F0F0F0" HeadersVisibility="Column" HorizontalScrollBarVisibility="Auto">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="45"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="50">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" IsReadOnly="True" Width="*" MinWidth="100">
-                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Project" Binding="{Binding Project}" IsReadOnly="True" Width="*" MinWidth="150">
-                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Ticket Summary" Binding="{Binding TicketSummary}" IsReadOnly="True" Width="*" MinWidth="150">
-                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridCheckBoxColumn Header="Override" Binding="{Binding HasOverride}" Width="55"/>
+                <DataGridCheckBoxColumn Header="Override" Binding="{Binding HasOverride}" Width="55">
+                    <DataGridCheckBoxColumn.ElementStyle><Style TargetType="CheckBox"><Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="ToolTip" Value="Check this to get a popup at submit time letting you set a custom charge code, note, and entry time just for this ticket."/></Style></DataGridCheckBoxColumn.ElementStyle>
+                </DataGridCheckBoxColumn>
                 <DataGridTextColumn Header="Ticket Note" Binding="{Binding TicketNote}" Width="*" MinWidth="90">
-                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Charge Code" Width="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding ChargeCodeOptions}" DisplayMemberPath="Name" SelectedValuePath="ID" SelectedValue="{Binding SelectedChargeCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
                 <DataGridTextColumn Header="Mon" Binding="{Binding Mon}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding MonHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Tue" Binding="{Binding Tue}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding TueHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Wed" Binding="{Binding Wed}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding WedHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Thu" Binding="{Binding Thu}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding ThuHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Fri" Binding="{Binding Fri}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding FriHasTime}" Value="True"><Setter Property="Background" Value="#D4EDDA"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Sat" Binding="{Binding Sat}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding SatHasTime}" Value="True"><Setter Property="Background" Value="#E2E3E5"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Sun" Binding="{Binding Sun}" Width="45">
                     <DataGridTextColumn.CellStyle><Style TargetType="DataGridCell"><Style.Triggers><DataTrigger Binding="{Binding SunHasTime}" Value="True"><Setter Property="Background" Value="#E2E3E5"/></DataTrigger></Style.Triggers></Style></DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Row Total" Binding="{Binding Total}" IsReadOnly="True" Width="60" FontWeight="Bold"/>
+                <DataGridTextColumn Header="Row Total" Binding="{Binding Total}" IsReadOnly="True" Width="60" FontWeight="Bold">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -101,14 +121,12 @@ $HaloUrl = "https://theinstillery.halopsa.com"
         </Border>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,5,0,0">
-            <Label Content="Project Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
-            <ComboBox Name="ChargeCodeCombo" Width="160" Margin="5,0,15,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
-
-            <Label Content="Consulting Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
-            <ComboBox Name="ConsultingChargeCodeCombo" Width="160" Margin="5,0,15,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
-
             <Label Content="Default Note:" VerticalAlignment="Center" FontWeight="Bold"/>
             <TextBox Name="NoteBox" Width="220" Margin="5,0,15,0" VerticalAlignment="Center" Text=""/>
+
+            <Label Content="Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
+            <ComboBox Name="BulkChargeCodeCombo" Width="160" Margin="5,0,10,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+            <Button Name="ApplyBulkChargeCodeBtn" Content="Apply to All Rows" Width="130" Padding="5" Background="#6C757D" Foreground="White" FontWeight="Bold"/>
         </StackPanel>
 
         <Button Name="SubmitBtn" Grid.Row="5" Content="Submit Time Entries" Height="40" Margin="0,15,0,0" Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="14"/>
@@ -130,8 +148,8 @@ $SubmitBtn          = $Window.FindName("SubmitBtn")
 $TimesheetGrid      = $Window.FindName("TimesheetGrid")
 $StatusText         = $Window.FindName("StatusText")
 $NoteBox            = $Window.FindName("NoteBox")
-$ChargeCodeCombo    = $Window.FindName("ChargeCodeCombo")
-$ConsultingChargeCodeCombo = $Window.FindName("ConsultingChargeCodeCombo")
+$BulkChargeCodeCombo    = $Window.FindName("BulkChargeCodeCombo")
+$ApplyBulkChargeCodeBtn = $Window.FindName("ApplyBulkChargeCodeBtn")
 
 # Footer Totals Elements
 $TotMon = $Window.FindName("TotMon"); $TotTue = $Window.FindName("TotTue"); $TotWed = $Window.FindName("TotWed")
@@ -171,35 +189,46 @@ function Show-OverrideInputBox {
         [string]$PromptMessage,
         [string]$DefaultNote = "",
         [System.Collections.IEnumerable]$ChargeCodes,
-        [string]$SelectedChargeCode = ""
+        [string]$SelectedChargeCode = "",
+        [int]$DefaultHour = 17,
+        [int]$DefaultMinute = 0
     )
 
     [xml]$InputXAML = @"
     <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-            Height="380" Width="480" WindowStartupLocation="CenterScreen"
+            Height="415" Width="480" WindowStartupLocation="CenterScreen"
             ResizeMode="NoResize" Topmost="True">
         <Grid Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            
+
             <TextBlock Name="PromptTextBlock" Grid.Row="0" Margin="0,0,0,12" TextWrapping="Wrap" FontWeight="Bold"/>
-            
+
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                <Label Content="Entry Time:" VerticalAlignment="Center" FontWeight="Bold" Width="100"/>
+                <ComboBox Name="HourCombo" Width="70" VerticalAlignment="Center"/>
+                <TextBlock Text=":" VerticalAlignment="Center" FontWeight="Bold" Margin="6,0,6,0"/>
+                <ComboBox Name="MinuteCombo" Width="70" VerticalAlignment="Center"/>
+                <TextBlock Text="(24h)" VerticalAlignment="Center" Foreground="Gray" Margin="10,0,0,0"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
                 <Label Content="Charge Code:" VerticalAlignment="Center" FontWeight="Bold" Width="100"/>
                 <ComboBox Name="PopupChargeCodeCombo" Width="330" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
             </StackPanel>
-            
-            <DockPanel Grid.Row="2" Margin="0,0,0,10">
+
+            <DockPanel Grid.Row="3" Margin="0,0,0,10">
                 <Label Content="Custom Note:" DockPanel.Dock="Top" FontWeight="Bold" Margin="0,0,0,4"/>
                 <TextBox Name="InputTextBox" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
             </DockPanel>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                 <Button Name="OkButton" Content="OK" Width="80" Height="28" Margin="0,0,10,0" IsDefault="True" />
                 <Button Name="CancelButton" Content="Cancel" Width="80" Height="28" IsCancel="True" />
             </StackPanel>
@@ -208,38 +237,49 @@ function Show-OverrideInputBox {
 "@
     $InputReader = (New-Object System.Xml.XmlNodeReader $InputXAML)
     $InputWindow = [Windows.Markup.XamlReader]::Load($InputReader)
-    
+
     $InputWindow.Title = $Title
     $InputWindow.FindName("PromptTextBlock").Text = $PromptMessage
-    
+
+    $HourCombo = $InputWindow.FindName("HourCombo")
+    $HourCombo.ItemsSource = 0..23 | ForEach-Object { "{0:D2}" -f $_ }
+    $HourCombo.SelectedItem = "{0:D2}" -f $DefaultHour
+
+    $MinuteCombo = $InputWindow.FindName("MinuteCombo")
+    $MinuteCombo.ItemsSource = @(0, 15, 30, 45) | ForEach-Object { "{0:D2}" -f $_ }
+    $MinuteCombo.SelectedItem = "{0:D2}" -f $DefaultMinute
+    if (-not $MinuteCombo.SelectedItem) { $MinuteCombo.SelectedIndex = 0 }
+
     $PopupCombo = $InputWindow.FindName("PopupChargeCodeCombo")
     $PopupCombo.ItemsSource = $ChargeCodes
-    
+
     if ($SelectedChargeCode -and ($ChargeCodes | Where-Object { [string]$_.ID -eq [string]$SelectedChargeCode })) {
         $PopupCombo.SelectedValue = $SelectedChargeCode
     } elseif ($null -ne $ChargeCodes -and $ChargeCodes.Count -gt 0) {
         $PopupCombo.SelectedIndex = 0
     }
-    
+
     $InputTextBox = $InputWindow.FindName("InputTextBox")
     $InputTextBox.Text = $DefaultNote
-    
+
     $OkBtn = $InputWindow.FindName("OkButton")
     $OkBtn.Add_Click({ $InputWindow.DialogResult = $true })
-    
+
     # Auto-focus and select text when the window appears
     $InputWindow.Add_ContentRendered({
         $InputTextBox.Focus() | Out-Null
         $InputTextBox.SelectAll()
     })
-    
+
     $Result = $InputWindow.ShowDialog()
-    
+
     if ($Result) {
         $ChosenChargeCode = if ($PopupCombo.SelectedValue) { [string]$PopupCombo.SelectedValue } else { $SelectedChargeCode }
         return @{
             Note       = $InputTextBox.Text
             ChargeCode = $ChosenChargeCode
+            Hour       = [int]$HourCombo.SelectedItem
+            Minute     = [int]$MinuteCombo.SelectedItem
         }
     } else {
         return $null
@@ -304,7 +344,7 @@ function Show-HowItWorksWindow {
                         <StackPanel>
                             <TextBlock Text="[3] Charge Codes &amp; Notes Management" FontSize="14" FontWeight="Bold" Foreground="#333"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#444" FontSize="12">
-                                - <Run FontWeight="Bold">Project vs Consulting Charge Codes:</Run> Separate dropdowns allow default charge rates for Project tickets vs Consulting tickets.
+                                - <Run FontWeight="Bold">Per-Ticket Charge Code:</Run> Each ticket row has its own Charge Code dropdown, populated from the full HaloPSA charge code list. It defaults to your own agent charge rate where available, otherwise the first available code.
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Ticket Note Column:</Run> Enter specific notes per ticket directly up front in the grid. Blank notes fall back to the 'Default Note' box.
                                 <LineBreak/><LineBreak/>
@@ -320,7 +360,9 @@ function Show-HowItWorksWindow {
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#856404" FontSize="12">
                                 - <Run FontWeight="Bold">Targeted Popups Only:</Run> Standard time entries submit silently without popup prompts.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">Dual Customization:</Run> Checking the <Run FontWeight="Bold">Override</Run> box on a ticket row triggers a popup during submit allowing you to specify both a <Run FontWeight="Bold">Custom Charge Code</Run> and a <Run FontWeight="Bold">Custom Note</Run> specifically for that entry.
+                                - <Run FontWeight="Bold">Triple Customization:</Run> Checking the <Run FontWeight="Bold">Override</Run> box on a ticket row triggers a popup during submit allowing you to specify a <Run FontWeight="Bold">Custom Charge Code</Run>, a <Run FontWeight="Bold">Custom Note</Run>, and a <Run FontWeight="Bold">Custom Entry Time</Run> (hour/minute, 24h format) specifically for that entry. Entries default to 5:00 PM when not overridden.
+                                <LineBreak/><LineBreak/>
+                                - <Run FontWeight="Bold">Ticket-Specific Charge Code List:</Run> The Charge Code dropdown in this popup is looked up specifically for that ticket's client, contract, and resolved outcome, so it may differ from the row's default list. If that lookup fails or returns nothing, it falls back to the row's normal Charge Code list.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -408,61 +450,33 @@ $LoadBtn.Add_Click({
         return
     }
 
-    # FETCH CHARGE CODES (Lookup ID 17)
+    # FETCH CHARGE CODES (Lookup ID 17) - shared across all rows, selected per-ticket in the grid
+    $ChargeCodeOptions = @()
+    $DefaultChargeCodeID = $null
     try {
-        # Fetch Project Charge Codes (outcome 132, tickettype 20)
-        $LookupUri = "$HaloUrl/api/lookup?lookupid=17&outcome_id=132&tickettype_id=20"
+        $LookupUri = "$HaloUrl/api/lookup?lookupid=17"
         $LookupResp = Invoke-RestMethod -Uri $LookupUri -Method Get -Headers $Headers
-        
-        $ComboData = @()
+
         foreach ($Item in $LookupResp) {
             # Halo Lookups usually return id and name. We map them cleanly for the ComboBox.
-            $ComboData += [PSCustomObject]@{
+            $ChargeCodeOptions += [PSCustomObject]@{
                 ID = $Item.id
                 Name = $Item.name
             }
         }
-        $ChargeCodeCombo.ItemsSource = $ComboData
-        
-        if ($ComboData.Count -gt 0) {
-             if ($ComboData.ID -contains $AgentChargeRate) {
-                $ChargeCodeCombo.SelectedValue = $AgentChargeRate
-            }
-            else {
-                $ChargeCodeCombo.SelectedIndex = 0
-            }
-        }
 
-        # Fetch Consulting Charge Codes (outcome 269, tickettype 100)
-        try {
-            $ConsultingLookupUri = "$HaloUrl/api/lookup?lookupid=17&outcome_id=269&tickettype_id=100"
-            $ConsultingLookupResp = Invoke-RestMethod -Uri $ConsultingLookupUri -Method Get -Headers $Headers
-            $ConsultingComboData = @()
-            foreach ($Item in $ConsultingLookupResp) {
-                $ConsultingComboData += [PSCustomObject]@{
-                    ID = $Item.id
-                    Name = $Item.name
-                }
-            }
-
-            if ($ConsultingComboData.Count -gt 0) {
-                $ConsultingChargeCodeCombo.ItemsSource = $ConsultingComboData
-                if ($ConsultingComboData.ID -contains $AgentChargeRate) {
-                    $ConsultingChargeCodeCombo.SelectedValue = $AgentChargeRate
-                }
-                else {
-                    $ConsultingChargeCodeCombo.SelectedIndex = 0
-                }
-            } else {
-                $ConsultingChargeCodeCombo.ItemsSource = $ComboData
-                $ConsultingChargeCodeCombo.SelectedValue = $ChargeCodeCombo.SelectedValue
-            }
-        } catch {
-            $ConsultingChargeCodeCombo.ItemsSource = $ComboData
-            $ConsultingChargeCodeCombo.SelectedValue = $ChargeCodeCombo.SelectedValue
+        if ($ChargeCodeOptions.Count -gt 0) {
+            $DefaultChargeCodeID = if ($ChargeCodeOptions.ID -contains $AgentChargeRate) { $AgentChargeRate } else { $ChargeCodeOptions[0].ID }
         }
     } catch {
         Write-Warning "Failed to load charge codes. $_"
+    }
+
+    $BulkChargeCodeCombo.ItemsSource = $ChargeCodeOptions
+    if ($DefaultChargeCodeID) {
+        $BulkChargeCodeCombo.SelectedValue = $DefaultChargeCodeID
+    } elseif ($ChargeCodeOptions.Count -gt 0) {
+        $BulkChargeCodeCombo.SelectedIndex = 0
     }
 
     $SelectedDate = $WeekPicker.SelectedDate
@@ -538,11 +552,17 @@ $LoadBtn.Add_Click({
             $RowObj = [PSCustomObject]@{
                 TicketID      = $Ticket.id
                 TicketTypeID  = $Ticket.tickettype_id
+                WorkflowID    = $Ticket.workflow_id
+                WorkflowStep  = $Ticket.workflow_step
+                ClientID      = $Ticket.client_id
+                ContractID    = if ($null -ne $Ticket.contract_id) { $Ticket.contract_id } else { -1 }
                 ClientName    = if ($Ticket.client_name) { $Ticket.client_name } else { "Unassigned" }
                 Project       = if ($Ticket.parent_subject) { $Ticket.parent_subject -replace " - Parent Project", '' } else { "None" }
                 TicketSummary = if ($Ticket.summary -match "-\s+(\D.*)$") { $Matches[1].Trim() } else { $Ticket.summary }
                 HasOverride   = $false
                 TicketNote    = ""
+                ChargeCodeOptions  = $ChargeCodeOptions
+                SelectedChargeCode = $DefaultChargeCodeID
                 Total = 0
                 Mon = $MonHrs; MonHasTime = ($MonHrs -gt 0)
                 Tue = $TueHrs; TueHasTime = ($TueHrs -gt 0)
@@ -574,13 +594,20 @@ $LoadBtn.Add_Click({
     }
 })
 
+# 4b. Bulk-Apply Charge Code Button Event
+$ApplyBulkChargeCodeBtn.Add_Click({
+    if (-not $TimesheetGrid.ItemsSource -or -not $BulkChargeCodeCombo.SelectedValue) { return }
+
+    foreach ($Row in $TimesheetGrid.ItemsSource) {
+        $Row.SelectedChargeCode = $BulkChargeCodeCombo.SelectedValue
+    }
+
+    try { $TimesheetGrid.Items.Refresh() } catch { }
+})
+
 # 5. Submit Button Event
 $SubmitBtn.Add_Click({
     $TimesheetGrid.CommitEdit() | Out-Null
-    
-    # Grab the selected Charge Rates from the dropdowns, defaulting if nothing is selected/loaded
-    $SelectedProjectChargeRate = if ($ChargeCodeCombo.SelectedValue) { [string]$ChargeCodeCombo.SelectedValue } else { "30" }
-    $SelectedConsultingChargeRate = if ($ConsultingChargeCodeCombo.SelectedValue) { [string]$ConsultingChargeCodeCombo.SelectedValue } else { $SelectedProjectChargeRate }
 
     $StatusText.Text = "Calculating and posting time entries..."
     $StatusText.Foreground = "Blue"
@@ -624,71 +651,109 @@ $SubmitBtn.Add_Click({
 
             if ($Diff -gt 0) {
                 $HoursToLog = $Diff
-                $EntryDate = $Global:LoadedDates[$Day].AddHours(17).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss")
+                $EntryHour = 17
+                $EntryMinute = 0
 
-                # Dynamically set Outcome, Status, default Charge Rate, and available lookup options based on Ticket Type
-                $CurrentTicketType = $OriginalRow.TicketTypeID
-
-                if ($CurrentTicketType -eq 100) {
-                    # Consulting Ticket
-                    $SubmitOutcomeId      = "269"
-                    $SubmitStatus         = 2
-                    $DefaultChargeRate    = $SelectedConsultingChargeRate
-                    $AvailableChargeCodes = $ConsultingChargeCodeCombo.ItemsSource
-                } else {
-                    # Project Ticket (Default)
-                    $SubmitOutcomeId      = "132"
-                    $SubmitStatus         = 61
-                    $DefaultChargeRate    = $SelectedProjectChargeRate
-                    $AvailableChargeCodes = $ChargeCodeCombo.ItemsSource
-                }
+                # Charge Rate comes from this row's Charge Code selector
+                # (Outcome ID and Status are resolved dynamically from the ticket's workflow just before posting)
+                $CurrentTicketType    = $OriginalRow.TicketTypeID
+                $DefaultChargeRate    = if ($CurrentRow.SelectedChargeCode) { [string]$CurrentRow.SelectedChargeCode } else { "30" }
+                $AvailableChargeCodes = $CurrentRow.ChargeCodeOptions
 
                 # Determine base note: custom ticket note up front if specified, otherwise General Default Note
                 $BaseNote = if (-not [string]::IsNullOrWhiteSpace($CurrentRow.TicketNote)) { $CurrentRow.TicketNote } else { $DefaultNote }
                 $FinalNote = $BaseNote
                 $FinalChargeRate = $DefaultChargeRate
 
-                # TARGETED OVERRIDE LOGIC (Triggers ONLY if Override checkbox is checked for this entry/row)
-                if ($CurrentRow.HasOverride) {
-                    $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
-                    
-                    $OverrideResult = Show-OverrideInputBox -Title "Time Entry Override ($Day)" -PromptMessage $PromptMsg -DefaultNote $BaseNote -ChargeCodes $AvailableChargeCodes -SelectedChargeCode $DefaultChargeRate
-                    
-                    if ($null -ne $OverrideResult) {
-                        if ($OverrideResult.Note) { $FinalNote = $OverrideResult.Note }
-                        if ($OverrideResult.ChargeCode) { $FinalChargeRate = $OverrideResult.ChargeCode }
-                    } else {
-                        # User clicked Cancel on the override dialog for this entry
-                        $CancelDialog = [System.Windows.MessageBox]::Show("You cancelled override for Ticket $($CurrentRow.TicketID) on $Day.`n`nDo you want to SKIP this entry and continue, or CANCEL all remaining postings?", "Override Cancelled", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
-                        if ($CancelDialog -eq [System.Windows.MessageBoxResult]::No) {
-                            $UserCancelled = $true
-                            break RowLoop
+                try {
+                    # Dynamically resolve the Outcome ID from the ticket's current workflow step
+                    $WorkflowUri = "$HaloUrl/api/workflow/$($CurrentRow.WorkflowID)"
+                    $WorkflowResp = Invoke-RestMethod -Uri $WorkflowUri -Method Get -Headers $Headers
+
+                    $MatchedStep = $WorkflowResp.steps | Where-Object { $_.step_id -eq $OriginalRow.WorkflowStep }
+                    $MatchedAction = $MatchedStep.actions | Where-Object { $_.action_name -match '(Project|Private|Internal) Note|Add Time' } | Select-Object -First 1
+
+                    if (-not $MatchedAction) {
+                        throw "No 'Note' or 'Add Time' action is available on the current workflow step for Ticket $($CurrentRow.TicketID)."
+                    }
+
+                    $SubmitOutcomeId = $MatchedAction.action_id
+
+                    # LIC actions post with no status change and a fixed charge rate
+                    $IsLicAction = $MatchedAction.action_name -match '^LIC'
+
+                    # TARGETED OVERRIDE LOGIC (Triggers ONLY if Override checkbox is checked for this entry/row)
+                    if ($CurrentRow.HasOverride) {
+                        $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
+
+                        # Resolve a charge-code list specific to this ticket's client/contract/outcome for the override picker
+                        $OverrideChargeCodes = $AvailableChargeCodes
+                        try {
+                            $OverrideLookupUri = "$HaloUrl/api/lookup?lookupid=17&use=0&client_id=$($OriginalRow.ClientID)&contract_id=$($OriginalRow.ContractID)&outcome_id=$SubmitOutcomeId&tickettype_id=$CurrentTicketType"
+                            $OverrideLookupResp = Invoke-RestMethod -Uri $OverrideLookupUri -Method Get -Headers $Headers
+                            $OverrideLookupData = @()
+                            foreach ($Item in $OverrideLookupResp) {
+                                $OverrideLookupData += [PSCustomObject]@{ ID = $Item.id; Name = $Item.name }
+                            }
+                            if ($OverrideLookupData.Count -gt 0) { $OverrideChargeCodes = $OverrideLookupData }
+                        } catch { }
+
+                        $OverrideResult = Show-OverrideInputBox -Title "Time Entry Override ($Day)" -PromptMessage $PromptMsg -DefaultNote $BaseNote -ChargeCodes $OverrideChargeCodes -SelectedChargeCode $DefaultChargeRate -DefaultHour $EntryHour -DefaultMinute $EntryMinute
+
+                        if ($null -ne $OverrideResult) {
+                            if ($OverrideResult.Note) { $FinalNote = $OverrideResult.Note }
+                            if ($OverrideResult.ChargeCode) { $FinalChargeRate = $OverrideResult.ChargeCode }
+                            $EntryHour = $OverrideResult.Hour
+                            $EntryMinute = $OverrideResult.Minute
                         } else {
-                            continue
+                            # User clicked Cancel on the override dialog for this entry
+                            $CancelDialog = [System.Windows.MessageBox]::Show("You cancelled override for Ticket $($CurrentRow.TicketID) on $Day.`n`nDo you want to SKIP this entry and continue, or CANCEL all remaining postings?", "Override Cancelled", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
+                            if ($CancelDialog -eq [System.Windows.MessageBoxResult]::No) {
+                                $UserCancelled = $true
+                                break RowLoop
+                            } else {
+                                continue
+                            }
                         }
                     }
-                }
 
-                $ActionObj = @{
-                    ticket_id     = $CurrentRow.TicketID
-                    note          = $FinalNote
-                    timetaken     = $HoursToLog
-                    datetime      = $EntryDate
-                    outcome_id    = $SubmitOutcomeId
-                    new_status    = $SubmitStatus
-                    chargerate    = $FinalChargeRate
-                }
+                    $EntryDate = $Global:LoadedDates[$Day].AddHours($EntryHour).AddMinutes($EntryMinute).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss")
 
-                $ActionPayload = "[$($ActionObj | ConvertTo-Json -Compress)]"
+                    if ($IsLicAction) {
+                        $SubmitStatus = $null
+                        $FinalChargeRate = "0"
+                    } else {
+                        # Dynamically resolve the Status that pairs with that Outcome on this workflow step
+                        $StatusUri = "$HaloUrl/api/Status?type=ticket&excludepending=true&excludeclosed=true&tickettype_id=$CurrentTicketType&outcome_id=$SubmitOutcomeId&workflow_id=$($OriginalRow.WorkflowID)&workflow_step=$($OriginalRow.WorkflowStep)"
+                        $StatusResp = Invoke-RestMethod -Uri $StatusUri -Method Get -Headers $Headers
+                        $SubmitStatus = ($StatusResp | Where-Object { $_.name -match 'Open|In Progress' } | Select-Object -First 1).id
 
-                try {
+                        if (-not $SubmitStatus) {
+                            throw "No valid ticket Status was returned for Ticket $($CurrentRow.TicketID) with Outcome $SubmitOutcomeId."
+                        }
+                    }
+
+                    $ActionObj = @{
+                        ticket_id     = $CurrentRow.TicketID
+                        note          = $FinalNote
+                        timetaken     = $HoursToLog
+                        datetime      = $EntryDate
+                        outcome_id    = $SubmitOutcomeId
+                        chargerate    = $FinalChargeRate
+                    }
+                    if (-not $IsLicAction) {
+                        $ActionObj.new_status = $SubmitStatus
+                    }
+
+                    $ActionPayload = "[$($ActionObj | ConvertTo-Json -Compress)]"
+
                     $PostUri = "$HaloUrl/api/Actions"
                     Invoke-RestMethod -Uri $PostUri -Method Post -Headers $Headers -Body $ActionPayload
                     $PostCount++
-                    
+
                     $OriginalRow.$Day = $CurrentVal
                     $HasTimeProp = "${Day}HasTime"
-                    $CurrentRow.$HasTimeProp = $true 
+                    $CurrentRow.$HasTimeProp = $true
                 } catch {
                     $ErrorMessage = if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message -join "`n" } else { $_.Exception.Message }
                     $IsUnauthorized = ($_.Exception.Response.StatusCode -eq 'Unauthorized' -or $_.Exception.Message -match "401")
