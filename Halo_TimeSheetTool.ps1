@@ -46,6 +46,9 @@ $HaloUrl = "https://theinstillery.halopsa.com"
         <DataGrid Name="TimesheetGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" AlternatingRowBackground="#F0F0F0" HeadersVisibility="Column" HorizontalScrollBarVisibility="Auto">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="45"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding TicketType}" IsReadOnly="True" Width="105">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" IsReadOnly="True" Width="*" MinWidth="100">
                     <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -100,16 +103,27 @@ $HaloUrl = "https://theinstillery.halopsa.com"
             </StackPanel>
         </Border>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,5,0,0">
-            <Label Content="Project Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
-            <ComboBox Name="ChargeCodeCombo" Width="160" Margin="5,0,15,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+        <WrapPanel Grid.Row="4" Orientation="Horizontal" Margin="0,5,0,0">
+            <StackPanel Orientation="Horizontal" Margin="0,2,15,2">
+                <Label Content="Project Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
+                <ComboBox Name="ChargeCodeCombo" Width="160" Margin="5,0,0,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+            </StackPanel>
 
-            <Label Content="Consulting Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
-            <ComboBox Name="ConsultingChargeCodeCombo" Width="160" Margin="5,0,15,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+            <StackPanel Orientation="Horizontal" Margin="0,2,15,2">
+                <Label Content="Consulting Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
+                <ComboBox Name="ConsultingChargeCodeCombo" Width="160" Margin="5,0,0,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+            </StackPanel>
 
-            <Label Content="Default Note:" VerticalAlignment="Center" FontWeight="Bold"/>
-            <TextBox Name="NoteBox" Width="220" Margin="5,0,15,0" VerticalAlignment="Center" Text=""/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,2,15,2">
+                <Label Content="Service / Evergreen Charge Code:" VerticalAlignment="Center" FontWeight="Bold"/>
+                <ComboBox Name="ServiceChargeCodeCombo" Width="160" Margin="5,0,0,0" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="ID"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                <Label Content="Default Note:" VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBox Name="NoteBox" Width="220" Margin="5,0,0,0" VerticalAlignment="Center" Text=""/>
+            </StackPanel>
+        </WrapPanel>
 
         <Button Name="SubmitBtn" Grid.Row="5" Content="Submit Time Entries" Height="40" Margin="0,15,0,0" Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="14"/>
     </Grid>
@@ -130,8 +144,9 @@ $SubmitBtn          = $Window.FindName("SubmitBtn")
 $TimesheetGrid      = $Window.FindName("TimesheetGrid")
 $StatusText         = $Window.FindName("StatusText")
 $NoteBox            = $Window.FindName("NoteBox")
-$ChargeCodeCombo    = $Window.FindName("ChargeCodeCombo")
+$ChargeCodeCombo           = $Window.FindName("ChargeCodeCombo")
 $ConsultingChargeCodeCombo = $Window.FindName("ConsultingChargeCodeCombo")
+$ServiceChargeCodeCombo    = $Window.FindName("ServiceChargeCodeCombo")
 
 # Footer Totals Elements
 $TotMon = $Window.FindName("TotMon"); $TotTue = $Window.FindName("TotTue"); $TotWed = $Window.FindName("TotWed")
@@ -145,15 +160,17 @@ $Global:LoadedDates = @{}
 # HELPER FUNCTION: Recalculate Totals
 $UpdateTotals = {
     $TMon = 0; $TTue = 0; $TWed = 0; $TThu = 0; $TFri = 0; $TSat = 0; $TSun = 0
-    foreach ($Row in $TimesheetGrid.ItemsSource) {
-        $M = 0; [double]::TryParse($Row.Mon, [ref]$M) | Out-Null; $TMon += $M
-        $T = 0; [double]::TryParse($Row.Tue, [ref]$T) | Out-Null; $TTue += $T
-        $W = 0; [double]::TryParse($Row.Wed, [ref]$W) | Out-Null; $TWed += $W
-        $Th= 0; [double]::TryParse($Row.Thu, [ref]$Th)| Out-Null; $TThu += $Th
-        $F = 0; [double]::TryParse($Row.Fri, [ref]$F) | Out-Null; $TFri += $F
-        $Sa= 0; [double]::TryParse($Row.Sat, [ref]$Sa)| Out-Null; $TSat += $Sa
-        $Su= 0; [double]::TryParse($Row.Sun, [ref]$Su)| Out-Null; $TSun += $Su
-        $Row.Total = $M + $T + $W + $Th + $F + $Sa + $Su
+    if ($null -ne $TimesheetGrid.ItemsSource) {
+        foreach ($Row in $TimesheetGrid.ItemsSource) {
+            $M = 0; [double]::TryParse($Row.Mon, [ref]$M) | Out-Null; $TMon += $M
+            $T = 0; [double]::TryParse($Row.Tue, [ref]$T) | Out-Null; $TTue += $T
+            $W = 0; [double]::TryParse($Row.Wed, [ref]$W) | Out-Null; $TWed += $W
+            $Th= 0; [double]::TryParse($Row.Thu, [ref]$Th)| Out-Null; $TThu += $Th
+            $F = 0; [double]::TryParse($Row.Fri, [ref]$F) | Out-Null; $TFri += $F
+            $Sa= 0; [double]::TryParse($Row.Sat, [ref]$Sa)| Out-Null; $TSat += $Sa
+            $Su= 0; [double]::TryParse($Row.Sun, [ref]$Su)| Out-Null; $TSun += $Su
+            $Row.Total = $M + $T + $W + $Th + $F + $Sa + $Su
+        }
     }
     $TotMon.Text = $TMon; $TotTue.Text = $TTue; $TotWed.Text = $TWed
     $TotThu.Text = $TThu; $TotFri.Text = $TFri; $TotSat.Text = $TSat; $TotSun.Text = $TSun
@@ -178,7 +195,7 @@ function Show-OverrideInputBox {
     <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
             Height="380" Width="480" WindowStartupLocation="CenterScreen"
-            ResizeMode="NoResize" Topmost="True">
+            ResizeMode="NoResize">
         <Grid Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -208,6 +225,7 @@ function Show-OverrideInputBox {
 "@
     $InputReader = (New-Object System.Xml.XmlNodeReader $InputXAML)
     $InputWindow = [Windows.Markup.XamlReader]::Load($InputReader)
+    if ($null -ne $Window -and $Window.IsLoaded) { $InputWindow.Owner = $Window }
     
     $InputWindow.Title = $Title
     $InputWindow.FindName("PromptTextBlock").Text = $PromptMessage
@@ -215,8 +233,8 @@ function Show-OverrideInputBox {
     $PopupCombo = $InputWindow.FindName("PopupChargeCodeCombo")
     $PopupCombo.ItemsSource = $ChargeCodes
     
-    if ($SelectedChargeCode -and ($ChargeCodes | Where-Object { [string]$_.ID -eq [string]$SelectedChargeCode })) {
-        $PopupCombo.SelectedValue = $SelectedChargeCode
+    if (-not [string]::IsNullOrWhiteSpace($SelectedChargeCode) -and ($ChargeCodes | Where-Object { [string]$_.ID -eq [string]$SelectedChargeCode })) {
+        $PopupCombo.SelectedValue = [string]$SelectedChargeCode
     } elseif ($null -ne $ChargeCodes -and $ChargeCodes.Count -gt 0) {
         $PopupCombo.SelectedIndex = 0
     }
@@ -236,7 +254,7 @@ function Show-OverrideInputBox {
     $Result = $InputWindow.ShowDialog()
     
     if ($Result) {
-        $ChosenChargeCode = if ($PopupCombo.SelectedValue) { [string]$PopupCombo.SelectedValue } else { $SelectedChargeCode }
+        $ChosenChargeCode = if ($null -ne $PopupCombo.SelectedValue -and [string]$PopupCombo.SelectedValue -ne "") { [string]$PopupCombo.SelectedValue } else { $SelectedChargeCode }
         return @{
             Note       = $InputTextBox.Text
             ChargeCode = $ChosenChargeCode
@@ -294,7 +312,7 @@ function Show-HowItWorksWindow {
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Fetch Existing Time (Slower):</Run> Pulls historical logged hours for the week from HaloPSA into the grid cells.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">Show All Tickets:</Run> By default, the tool shows Project (Type 20) &amp; Consulting (Type 100) tickets. Check this to load all assigned open tickets.
+                                - <Run FontWeight="Bold">Show All Tickets:</Run> By default, the tool shows Project (Type 20), Consulting (Type 100), Service Request (Type 3), &amp; Evergreen (Type 114) tickets. Check this to load all assigned open tickets (note: other unmapped ticket types cannot have time posted via this tool).
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -304,11 +322,11 @@ function Show-HowItWorksWindow {
                         <StackPanel>
                             <TextBlock Text="[3] Charge Codes &amp; Notes Management" FontSize="14" FontWeight="Bold" Foreground="#333"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#444" FontSize="12">
-                                - <Run FontWeight="Bold">Project vs Consulting Charge Codes:</Run> Separate dropdowns allow default charge rates for Project tickets vs Consulting tickets.
+                                - <Run FontWeight="Bold">Charge Code Dropdowns:</Run> Separate dropdowns allow setting default charge rates for Project tickets, Consulting tickets, and a shared dropdown for Service Request &amp; Evergreen tickets.
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Ticket Note Column:</Run> Enter specific notes per ticket directly up front in the grid. Blank notes fall back to the 'Default Note' box.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">0.25 Time Block Enforcement:</Run> All time entries must be in 15-minute (0.25h) increments. Any entry that isn't will be rejected with a warning and skipped on submit.
+                                - <Run FontWeight="Bold">0.25 Time Block Enforcement:</Run> All added time entries must be in 15-minute (0.25h) increments. Any entry that isn't will be rejected with a warning and skipped on submit.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -330,6 +348,8 @@ function Show-HowItWorksWindow {
                         <StackPanel>
                             <TextBlock Text="[5] Tool Limitations" FontSize="14" FontWeight="Bold" Foreground="#721C24"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#721C24" FontSize="12">
+                                - <Run FontWeight="Bold">Supported Ticket Types:</Run> Time posting supports Project, Consulting, Service Request, and Evergreen tickets. Entries on other ticket types shown via 'Show All Tickets' will be flagged and skipped during submission.
+                                <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Adding Time Only:</Run> You can add time to any day where your entered value exceeds existing hours.
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">No Reduction/Deletion:</Run> You cannot reduce hours or delete historical time entries via this tool. Modifications to past entries must be performed directly in HaloPSA.
@@ -361,6 +381,7 @@ function Show-HowItWorksWindow {
 "@
     $HelpReader = (New-Object System.Xml.XmlNodeReader $HelpXAML)
     $HelpWindow = [Windows.Markup.XamlReader]::Load($HelpReader)
+    if ($null -ne $Window -and $Window.IsLoaded) { $HelpWindow.Owner = $Window }
     
     $CloseBtn = $HelpWindow.FindName("CloseHelpBtn")
     $CloseBtn.Add_Click({ $HelpWindow.Close() })
@@ -401,6 +422,7 @@ $LoadBtn.Add_Click({
         $agentResp = Invoke-RestMethod -Uri $agentUri -Method Get -Headers $Headers
         $AgentID = $agentResp.id
         $AgentChargeRate = $agentResp.chargerate
+        $AgentChargeRateStr = if ($null -ne $AgentChargeRate) { [string]$AgentChargeRate } else { "" }
     } catch {
         $ErrMsg = if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
         $StatusText.Text = "Failed to retrieve agent details. $ErrMsg"
@@ -415,20 +437,19 @@ $LoadBtn.Add_Click({
         $LookupResp = Invoke-RestMethod -Uri $LookupUri -Method Get -Headers $Headers
         
         $ComboData = @()
-        foreach ($Item in $LookupResp) {
-            # Halo Lookups usually return id and name. We map them cleanly for the ComboBox.
+        foreach ($Item in ($LookupResp | Where-Object { -not $_.inactive })) {
+            # Halo Lookups usually return id and name. Store ID as string so "0" ("No Charge") matches reliably.
             $ComboData += [PSCustomObject]@{
-                ID = $Item.id
+                ID = [string]$Item.id
                 Name = $Item.name
             }
         }
         $ChargeCodeCombo.ItemsSource = $ComboData
         
         if ($ComboData.Count -gt 0) {
-             if ($ComboData.ID -contains $AgentChargeRate) {
-                $ChargeCodeCombo.SelectedValue = $AgentChargeRate
-            }
-            else {
+            if (-not [string]::IsNullOrEmpty($AgentChargeRateStr) -and ($ComboData.ID -contains $AgentChargeRateStr)) {
+                $ChargeCodeCombo.SelectedValue = $AgentChargeRateStr
+            } else {
                 $ChargeCodeCombo.SelectedIndex = 0
             }
         }
@@ -438,19 +459,18 @@ $LoadBtn.Add_Click({
             $ConsultingLookupUri = "$HaloUrl/api/lookup?lookupid=17&outcome_id=269&tickettype_id=100"
             $ConsultingLookupResp = Invoke-RestMethod -Uri $ConsultingLookupUri -Method Get -Headers $Headers
             $ConsultingComboData = @()
-            foreach ($Item in $ConsultingLookupResp) {
+            foreach ($Item in ($ConsultingLookupResp | Where-Object { -not $_.inactive })) {
                 $ConsultingComboData += [PSCustomObject]@{
-                    ID = $Item.id
+                    ID = [string]$Item.id
                     Name = $Item.name
                 }
             }
 
             if ($ConsultingComboData.Count -gt 0) {
                 $ConsultingChargeCodeCombo.ItemsSource = $ConsultingComboData
-                if ($ConsultingComboData.ID -contains $AgentChargeRate) {
-                    $ConsultingChargeCodeCombo.SelectedValue = $AgentChargeRate
-                }
-                else {
+                if (-not [string]::IsNullOrEmpty($AgentChargeRateStr) -and ($ConsultingComboData.ID -contains $AgentChargeRateStr)) {
+                    $ConsultingChargeCodeCombo.SelectedValue = $AgentChargeRateStr
+                } else {
                     $ConsultingChargeCodeCombo.SelectedIndex = 0
                 }
             } else {
@@ -461,6 +481,36 @@ $LoadBtn.Add_Click({
             $ConsultingChargeCodeCombo.ItemsSource = $ComboData
             $ConsultingChargeCodeCombo.SelectedValue = $ChargeCodeCombo.SelectedValue
         }
+
+        # Fetch Service Request / Evergreen Charge Codes (outcome 108, tickettype 3 primary with tickettype 114 fallback)
+        $ServiceComboData = @()
+        foreach ($ServiceLookupUri in @(
+            "$HaloUrl/api/lookup?lookupid=17&outcome_id=108&tickettype_id=3",
+            "$HaloUrl/api/lookup?lookupid=17&use=0&outcome_id=108&tickettype_id=114"
+        )) {
+            try {
+                $ServiceLookupResp = Invoke-RestMethod -Uri $ServiceLookupUri -Method Get -Headers $Headers
+                foreach ($Item in ($ServiceLookupResp | Where-Object { -not $_.inactive })) {
+                    $ServiceComboData += [PSCustomObject]@{
+                        ID = [string]$Item.id
+                        Name = $Item.name
+                    }
+                }
+                if ($ServiceComboData.Count -gt 0) { break }
+            } catch { }
+        }
+
+        if ($ServiceComboData.Count -gt 0) {
+            $ServiceChargeCodeCombo.ItemsSource = $ServiceComboData
+            if (-not [string]::IsNullOrEmpty($AgentChargeRateStr) -and ($ServiceComboData.ID -contains $AgentChargeRateStr)) {
+                $ServiceChargeCodeCombo.SelectedValue = $AgentChargeRateStr
+            } else {
+                $ServiceChargeCodeCombo.SelectedIndex = 0
+            }
+        } else {
+            $ServiceChargeCodeCombo.ItemsSource = $ComboData
+            $ServiceChargeCodeCombo.SelectedValue = $ChargeCodeCombo.SelectedValue
+        }
     } catch {
         Write-Warning "Failed to load charge codes. $_"
     }
@@ -468,7 +518,7 @@ $LoadBtn.Add_Click({
     $SelectedDate = $WeekPicker.SelectedDate
     $Offset = if ($SelectedDate.DayOfWeek -eq 'Sunday') { 6 } else { [int]$SelectedDate.DayOfWeek - 1 }
     $Monday = $SelectedDate.AddDays(-$Offset).Date
-    $Sunday = $Monday.AddDays(6).AddHours(23).AddMinutes(59)
+    $WeekEnd = $Monday.AddDays(7)
     
     $Global:LoadedDates = @{
         "Mon" = $Monday; "Tue" = $Monday.AddDays(1); "Wed" = $Monday.AddDays(2);
@@ -479,12 +529,24 @@ $LoadBtn.Add_Click({
         $Uri = "$HaloUrl/api/Tickets?pageinate=false&agent_id=$AgentID&open_only=true&columns_id=104"
         $Response = Invoke-RestMethod -Uri $Uri -Method Get -Headers $Headers
         
+        $SupportedTicketTypeIds = @(20, 100, 3, 114)
         if ($FetchAllTicketsChk.IsChecked) {
-            $Tickets = $Response.tickets
+            $Tickets = @($Response.tickets)
         } else {
-            # Filter to just Project Tickets (20) and Consulting Tickets (100)
-            $Tickets = $Response.tickets | Where-Object { $_.tickettype_id -eq 20 -or $_.tickettype_id -eq 100 }
+            # Filter to supported ticket types: Project (20), Consulting (100), Service Request (3), Evergreen (114)
+            $Tickets = @($Response.tickets | Where-Object { $SupportedTicketTypeIds -contains [int]$_.tickettype_id })
         }
+
+        # Deduplicate tickets by ID (Halo's /api/Tickets queue response can include duplicate ticket rows)
+        $SeenIds = @{}
+        $Tickets = @($Tickets | Where-Object {
+            if ($null -ne $_.id -and -not $SeenIds.ContainsKey($_.id)) {
+                $SeenIds[$_.id] = $true
+                $true
+            } else {
+                $false
+            }
+        })
 
         if ($null -eq $Tickets -or $Tickets.Count -eq 0) {
             $StatusText.Text = "No tickets found for the selected criteria."
@@ -499,6 +561,8 @@ $LoadBtn.Add_Click({
         $GridData = @()
         $Global:OriginalData = @()
         $CurrentTicketNum = 1
+        $ActionFetchErrors = 0
+        $FailedActionTickets = @()
 
         foreach ($Ticket in $Tickets) {
             # Start hours at 0
@@ -511,13 +575,13 @@ $LoadBtn.Add_Click({
                 [System.Windows.Forms.Application]::DoEvents()
 
                 try {
-                    $ActionsUri = "$HaloUrl/api/Actions?ticket_id=$($Ticket.id)&agentonly=true"
+                    $ActionsUri = "$HaloUrl/api/Actions?ticket_id=$($Ticket.id)&agentonly=true&pageinate=false"
                     $ActionsResp = Invoke-RestMethod -Uri $ActionsUri -Method Get -Headers $Headers
                     $ActionsList = $ActionsResp.actions | Where-Object {$_.who_agentid -eq $AgentID}
 
                     foreach ($Act in $ActionsList) {
                         $ActDate = ([datetime]$Act.datetime).ToLocalTime()
-                        if ($ActDate -ge $Monday -and $ActDate -le $Sunday -and $Act.timetaken -gt 0) {
+                        if ($ActDate -ge $Monday -and $ActDate -lt $WeekEnd -and $Act.timetaken -gt 0) {
                             $Hours = [math]::Round($Act.timetaken, 2)
                             switch ($ActDate.DayOfWeek) {
                                 'Monday'    { $MonHrs += $Hours }
@@ -530,17 +594,52 @@ $LoadBtn.Add_Click({
                             }
                         }
                     }
-                } catch { }
+                } catch {
+                    $ActionFetchErrors++
+                    $FailedActionTickets += $Ticket.id
+                    Write-Warning "Failed to fetch existing actions for Ticket $($Ticket.id): $_"
+                }
             }
             $CurrentTicketNum++
+
+            $TypeId = [int]$Ticket.tickettype_id
+            $TicketTypeName = switch ($TypeId) {
+                20      { "Project" }
+                100     { "Consulting" }
+                3       { "Service Request" }
+                114     { "Evergreen" }
+                default {
+                    if (-not [string]::IsNullOrWhiteSpace($Ticket.tickettype_name)) {
+                        "$($Ticket.tickettype_name) (Unsupported)"
+                    } else {
+                        "Other (Type $TypeId)"
+                    }
+                }
+            }
+
+            # Strip project code prefix only on Project/Consulting tickets; handle numeric-leading Project task names safely
+            $FormattedSummary = if ($TypeId -eq 20) {
+                if ($Ticket.summary -match "^[^-]+-\s*\d+\s*-\s*(.+)$") {
+                    $Matches[1].Trim()
+                } elseif ($Ticket.summary -match "-\s+(\D.*)$") {
+                    $Matches[1].Trim()
+                } else {
+                    $Ticket.summary
+                }
+            } elseif ($TypeId -eq 100 -and ($Ticket.summary -match "-\s+(\D.*)$")) {
+                $Matches[1].Trim()
+            } else {
+                $Ticket.summary
+            }
 
             # Map the new properties directly from the ticket object
             $RowObj = [PSCustomObject]@{
                 TicketID      = $Ticket.id
-                TicketTypeID  = $Ticket.tickettype_id
+                TicketTypeID  = $TypeId
+                TicketType    = $TicketTypeName
                 ClientName    = if ($Ticket.client_name) { $Ticket.client_name } else { "Unassigned" }
                 Project       = if ($Ticket.parent_subject) { $Ticket.parent_subject -replace " - Parent Project", '' } else { "None" }
-                TicketSummary = if ($Ticket.summary -match "-\s+(\D.*)$") { $Matches[1].Trim() } else { $Ticket.summary }
+                TicketSummary = $FormattedSummary
                 HasOverride   = $false
                 TicketNote    = ""
                 Total = 0
@@ -565,8 +664,13 @@ $LoadBtn.Add_Click({
         
         &$UpdateTotals 
         
-        $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd'))."
-        $StatusText.Foreground = "Green"
+        if ($ActionFetchErrors -gt 0) {
+            $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd')) (Warning: failed to fetch existing time for $ActionFetchErrors ticket(s): $($FailedActionTickets -join ', '))."
+            $StatusText.Foreground = "DarkOrange"
+        } else {
+            $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd'))."
+            $StatusText.Foreground = "Green"
+        }
 
     } catch {
         $StatusText.Text = "API Error: $_"
@@ -576,11 +680,13 @@ $LoadBtn.Add_Click({
 
 # 5. Submit Button Event
 $SubmitBtn.Add_Click({
-    $TimesheetGrid.CommitEdit() | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Cell, $true) | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Row, $true) | Out-Null
     
-    # Grab the selected Charge Rates from the dropdowns, defaulting if nothing is selected/loaded
-    $SelectedProjectChargeRate = if ($ChargeCodeCombo.SelectedValue) { [string]$ChargeCodeCombo.SelectedValue } else { "30" }
-    $SelectedConsultingChargeRate = if ($ConsultingChargeCodeCombo.SelectedValue) { [string]$ConsultingChargeCodeCombo.SelectedValue } else { $SelectedProjectChargeRate }
+    # Grab the selected Charge Rates from the dropdowns, defaulting if nothing is selected/loaded (check $null/-ne "" so "0" No Charge works)
+    $SelectedProjectChargeRate = if ($null -ne $ChargeCodeCombo.SelectedValue -and [string]$ChargeCodeCombo.SelectedValue -ne "") { [string]$ChargeCodeCombo.SelectedValue } else { "30" }
+    $SelectedConsultingChargeRate = if ($null -ne $ConsultingChargeCodeCombo.SelectedValue -and [string]$ConsultingChargeCodeCombo.SelectedValue -ne "") { [string]$ConsultingChargeCodeCombo.SelectedValue } else { $SelectedProjectChargeRate }
+    $SelectedServiceChargeRate = if ($null -ne $ServiceChargeCodeCombo.SelectedValue -and [string]$ServiceChargeCodeCombo.SelectedValue -ne "") { [string]$ServiceChargeCodeCombo.SelectedValue } else { $SelectedProjectChargeRate }
 
     $StatusText.Text = "Calculating and posting time entries..."
     $StatusText.Foreground = "Blue"
@@ -601,7 +707,8 @@ $SubmitBtn.Add_Click({
     $UserCancelled = $false
 
     :RowLoop foreach ($CurrentRow in $CurrentData) {
-        $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID }
+        $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID } | Select-Object -First 1
+        if ($null -eq $OriginalRow) { continue }
         
         $Days = @("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         foreach ($Day in $Days) {
@@ -609,38 +716,66 @@ $SubmitBtn.Add_Click({
             if (-not [double]::TryParse($CurrentRow.$Day, [ref]$CurrentVal)) {
                 $StatusText.Text = "Warning: Invalid number detected in Ticket $($CurrentRow.TicketID) on $Day. Skipped."
                 $StatusText.Foreground = "DarkOrange"
+                $InvalidMsg = "Invalid number '$($CurrentRow.$Day)' detected in Ticket $($CurrentRow.TicketID) on $Day.`n`nThis entry was skipped."
+                [System.Windows.MessageBox]::Show($InvalidMsg, "Invalid Time Entry", 0, 48)
+                $ErrorCount++
                 continue 
             }
 
-            if (([decimal]$CurrentVal % [decimal]0.25) -ne 0) {
-                $WarnMsg = "Time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day was skipped."
+            $OriginalVal = [double]($OriginalRow.$Day)
+            $Diff = [math]::Round([decimal]$CurrentVal - [decimal]$OriginalVal, 4)
+
+            if ($Diff -eq 0) { continue }
+
+            if ($Diff -gt 0 -and (($Diff % [decimal]0.25) -ne 0)) {
+                $WarnMsg = "Added time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day (+$Diff hrs) was skipped."
                 [System.Windows.MessageBox]::Show($WarnMsg, "Invalid Time Entry", 0, 48)
                 $ErrorCount++
                 continue
             }
-            
-            $OriginalVal = [double]($OriginalRow.$Day)
-            $Diff = $CurrentVal - $OriginalVal
 
             if ($Diff -gt 0) {
-                $HoursToLog = $Diff
-                $EntryDate = $Global:LoadedDates[$Day].AddHours(17).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss")
+                $HoursToLog = [double]$Diff
+                $EntryDate = $Global:LoadedDates[$Day].AddHours(17).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
-                # Dynamically set Outcome, Status, default Charge Rate, and available lookup options based on Ticket Type
-                $CurrentTicketType = $OriginalRow.TicketTypeID
+                # Dynamically set Outcome, Status, visibility flags, default Charge Rate, and available lookup options based on Ticket Type
+                $CurrentTicketType = [int]$OriginalRow.TicketTypeID
+                $IsServiceTicket = $false
 
-                if ($CurrentTicketType -eq 100) {
-                    # Consulting Ticket
-                    $SubmitOutcomeId      = "269"
-                    $SubmitStatus         = 2
-                    $DefaultChargeRate    = $SelectedConsultingChargeRate
-                    $AvailableChargeCodes = $ConsultingChargeCodeCombo.ItemsSource
-                } else {
-                    # Project Ticket (Default)
-                    $SubmitOutcomeId      = "132"
-                    $SubmitStatus         = 61
-                    $DefaultChargeRate    = $SelectedProjectChargeRate
-                    $AvailableChargeCodes = $ChargeCodeCombo.ItemsSource
+                switch ($CurrentTicketType) {
+                    20 {
+                        # Project Ticket
+                        $SubmitOutcomeId      = "132"
+                        $SubmitStatus         = 61
+                        $DefaultChargeRate    = $SelectedProjectChargeRate
+                        $AvailableChargeCodes = $ChargeCodeCombo.ItemsSource
+                    }
+                    100 {
+                        # Consulting Ticket
+                        $SubmitOutcomeId      = "269"
+                        $SubmitStatus         = 2
+                        $DefaultChargeRate    = $SelectedConsultingChargeRate
+                        $AvailableChargeCodes = $ConsultingChargeCodeCombo.ItemsSource
+                    }
+                    { $_ -eq 3 -or $_ -eq 114 } {
+                        # Service Request (3) or Evergreen (114) Ticket - private note, preserve current status
+                        $SubmitOutcomeId      = "108"
+                        $SubmitStatus         = $null
+                        $IsServiceTicket      = $true
+                        $DefaultChargeRate    = $SelectedServiceChargeRate
+                        $AvailableChargeCodes = $ServiceChargeCodeCombo.ItemsSource
+                    }
+                    default {
+                        $SkipPrompt = "Ticket $($CurrentRow.TicketID) ($($CurrentRow.TicketType), Type ID $CurrentTicketType) on $Day is not a supported ticket type for time posting.`n`nClick YES to skip this entry and continue, or NO to cancel all remaining postings."
+                        $SkipDialog = [System.Windows.MessageBox]::Show($SkipPrompt, "Unsupported Ticket Type", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Warning)
+                        $ErrorCount++
+                        if ($SkipDialog -eq [System.Windows.MessageBoxResult]::No) {
+                            $UserCancelled = $true
+                            break RowLoop
+                        } else {
+                            continue
+                        }
+                    }
                 }
 
                 # Determine base note: custom ticket note up front if specified, otherwise General Default Note
@@ -650,13 +785,13 @@ $SubmitBtn.Add_Click({
 
                 # TARGETED OVERRIDE LOGIC (Triggers ONLY if Override checkbox is checked for this entry/row)
                 if ($CurrentRow.HasOverride) {
-                    $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
+                    $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) ($($CurrentRow.TicketType)) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
                     
                     $OverrideResult = Show-OverrideInputBox -Title "Time Entry Override ($Day)" -PromptMessage $PromptMsg -DefaultNote $BaseNote -ChargeCodes $AvailableChargeCodes -SelectedChargeCode $DefaultChargeRate
                     
                     if ($null -ne $OverrideResult) {
-                        if ($OverrideResult.Note) { $FinalNote = $OverrideResult.Note }
-                        if ($OverrideResult.ChargeCode) { $FinalChargeRate = $OverrideResult.ChargeCode }
+                        $FinalNote = $OverrideResult.Note
+                        if ($null -ne $OverrideResult.ChargeCode -and [string]$OverrideResult.ChargeCode -ne "") { $FinalChargeRate = [string]$OverrideResult.ChargeCode }
                     } else {
                         # User clicked Cancel on the override dialog for this entry
                         $CancelDialog = [System.Windows.MessageBox]::Show("You cancelled override for Ticket $($CurrentRow.TicketID) on $Day.`n`nDo you want to SKIP this entry and continue, or CANCEL all remaining postings?", "Override Cancelled", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
@@ -669,14 +804,25 @@ $SubmitBtn.Add_Click({
                     }
                 }
 
+                $ParsedRate = 0
+                $ChargeRateValue = if ([int]::TryParse($FinalChargeRate, [ref]$ParsedRate)) { $ParsedRate } else { $FinalChargeRate }
+
                 $ActionObj = @{
                     ticket_id     = $CurrentRow.TicketID
                     note          = $FinalNote
                     timetaken     = $HoursToLog
                     datetime      = $EntryDate
                     outcome_id    = $SubmitOutcomeId
-                    new_status    = $SubmitStatus
-                    chargerate    = $FinalChargeRate
+                    chargerate    = $ChargeRateValue
+                }
+
+                if ($null -ne $SubmitStatus) {
+                    $ActionObj["new_status"] = $SubmitStatus
+                }
+                if ($IsServiceTicket) {
+                    $ActionObj["hiddenfromuser"] = $true
+                    $ActionObj["sendemail"]      = $false
+                    $ActionObj["new_slastatus"]  = -1
                 }
 
                 $ActionPayload = "[$($ActionObj | ConvertTo-Json -Compress)]"

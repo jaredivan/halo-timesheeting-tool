@@ -1,8 +1,19 @@
+=== COMPLETED ===
+
 [x] consulting ticket's don't have a 'default charge code' like other project tickets -> added second 'charge code for consulting' selection box in the tool
 
 [x] if fail to post e.g. token expired, option to continue trying or cancel all posting
 
 [x] custom note or general note option per ticket up front (plus per-entry 'Override' checkbox for targeted custom note & custom charge code popup)
+
+[x] Ticket type column/indicator — added a read-only Type column in the grid showing Project, Consulting, Service Request, Evergreen, or unsupported types.
+
+[x] Posting time for Service Request (Type 3) & Evergreen (Type 114) tickets — added support using outcome_id 108 (private/no-email, preserving status), shared Service / Evergreen charge code dropdown, and safe warning/skip handling for other unmapped ticket types when 'Show All Tickets' is enabled.
+
+[x] Remove silent catch {} on existing-time fetch — logged warnings and added a status-bar warning listing failed ticket IDs when existing-time lookups fail.
+
+
+=== OPEN — FEATURES ===
 
 [ ] Add support for non-billable internal timesheet charge codes/categories (e.g., Timesheet>Admin, Timesheet>Internal Meeting, Timesheet>Peer Support, Timesheet>Services Non Billable, Timesheet>Training). Note: logged via Halo timesheet section rather than ticket action endpoints, so API calls and mechanism may differ.
 
@@ -10,3 +21,37 @@
     - Endpoint: POST /api/Timesheet?utcoffset=-720 (where utcoffset is minutes from UTC, e.g. -720 for NZST/UTC+12)
     - Payload sample: [{"date":"2026-07-31T00:00:00.000Z","agent_id":220,"start_time":"2026-07-30T21:00:00.000Z","end_time":"2026-07-31T06:30:00.000Z"}]
     - Note: start_time and end_time must be converted to UTC0 ISO timestamps based on local time and UTC offset.
+
+[ ] Submit confirmation dialog — show a summary (e.g. "Post 12 entries totaling 38.5h across 6 tickets?") before firing API calls to prevent accidental submissions.
+
+[ ] Token expiry pre-check — decode the JWT and check the exp claim before attempting load/submit, rather than discovering it failed mid-post.
+
+[ ] Search/filter bar for tickets — allow filtering the grid by keyword so large ticket lists are easier to navigate.
+
+[ ] Delete/reduce existing time entries — currently additive-only; allow corrections without going into HaloPSA directly.
+
+[ ] Configurable Halo URL — parameterise instead of hardcoding to theinstillery.halopsa.com, for portability.
+
+
+=== OPEN — UX / POLISH ===
+
+[ ] Weekend hours warning — prompt if Sat/Sun hours are entered (likely a mistake).
+
+[ ] Progress bar — visual indicator during ticket fetch, rather than text-only status updates.
+
+[ ] Export/import grid state — save a partially-filled grid to resume later.
+
+[ ] Persist user preferences — remember last charge codes, default note, window size across sessions.
+
+
+=== OPEN — CODE QUALITY ===
+
+[ ] Async API calls — replace DoEvents() with background runspaces to prevent UI freezing during long loads.
+
+[ ] Document magic numbers — outcome IDs (108, 132, 269), status IDs (2, 61), ticket type IDs (3, 20, 100, 114), lookup ID (17), fallback charge rate ("30"), and AddHours(17) timezone assumption.
+
+[ ] Refactor monolithic Load/Submit handlers into named functions for readability.
+
+[ ] Replace array += in loops with [System.Collections.Generic.List[object]] to avoid O(n²) reallocation.
+
+
