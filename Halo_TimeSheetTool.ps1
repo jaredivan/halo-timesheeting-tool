@@ -665,6 +665,9 @@ $LoadBtn.Add_Click({
 $ApplyBulkChargeCodeBtn.Add_Click({
     if ($null -eq $TimesheetGrid.ItemsSource -or $null -eq $BulkChargeCodeCombo.SelectedValue -or [string]$BulkChargeCodeCombo.SelectedValue -eq "") { return }
 
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Cell, $true) | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Row, $true) | Out-Null
+
     foreach ($Row in $TimesheetGrid.ItemsSource) {
         $Row.SelectedChargeCode = [string]$BulkChargeCodeCombo.SelectedValue
     }
@@ -694,6 +697,8 @@ $SubmitBtn.Add_Click({
     $ErrorCount = 0
     $TokenExpired = $false
     $UserCancelled = $false
+    $WorkflowCache = @{}
+    $StatusCache = @{}
 
     :RowLoop foreach ($CurrentRow in $CurrentData) {
         $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID } | Select-Object -First 1
@@ -741,14 +746,29 @@ $SubmitBtn.Add_Click({
                 $FinalChargeRate = $DefaultChargeRate
 
                 try {
-                    # Dynamically resolve the Outcome ID from the ticket's current workflow step
+                    # Dynamically resolve the Outcome ID from the ticket's current workflow step (cached per submit run)
                     $MatchedAction = $null
-                    if ($null -ne $OriginalRow.WorkflowID -and [string]$OriginalRow.WorkflowID -ne "") {
-                        $WorkflowUri = "$HaloUrl/api/workflow/$($OriginalRow.WorkflowID)"
-                        $WorkflowResp = Invoke-RestMethod -Uri $WorkflowUri -Method Get -Headers $Headers
+                    $WorkflowIdInt = 0
+                    if ([int]::TryParse([string]$OriginalRow.WorkflowID, [ref]$WorkflowIdInt) -and $WorkflowIdInt -gt 0) {
+                        if ($WorkflowCache.ContainsKey($WorkflowIdInt)) {
+                            $WorkflowResp = $WorkflowCache[$WorkflowIdInt]
+                        } else {
+                            $WorkflowUri = "$HaloUrl/api/workflow/$WorkflowIdInt"
+                            $WorkflowResp = Invoke-RestMethod -Uri $WorkflowUri -Method Get -Headers $Headers
+                            $WorkflowCache[$WorkflowIdInt] = $WorkflowResp
+                        }
 
-                        $MatchedStep = $WorkflowResp.steps | Where-Object { $_.step_id -eq $OriginalRow.WorkflowStep }
-                        $MatchedAction = $MatchedStep.actions | Where-Object { $_.action_name -match '(Project|Private|Internal) Note|Add Time' } | Select-Object -First 1
+                        if ($null -ne $WorkflowResp -and $null -ne $WorkflowResp.steps) {
+                            $MatchedStep = $WorkflowResp.steps | Where-Object { $_.step_id -eq $OriginalRow.WorkflowStep }
+                            if ($null -ne $MatchedStep) {
+                                if ($IsServiceTicket) {
+                                    $MatchedAction = $MatchedStep.actions | Where-Object { [string]$_.action_id -eq "108" } | Select-Object -First 1
+                                }
+                                if (-not $MatchedAction) {
+                                    $MatchedAction = $MatchedStep.actions | Where-Object { $_.action_name -match '(Project|Private|Internal) Note|Add Time' } | Select-Object -First 1
+                                }
+                            }
+                        }
                     }
 
                     if ($MatchedAction) {
@@ -806,9 +826,15 @@ $SubmitBtn.Add_Click({
                         # Service Request (3) & Evergreen (114) omit new_status so existing ticket status stays unchanged
                         $SubmitStatus = $null
                     } else {
-                        # Dynamically resolve the Status that pairs with that Outcome on this workflow step
-                        $StatusUri = "$HaloUrl/api/Status?type=ticket&excludepending=true&excludeclosed=true&tickettype_id=$CurrentTicketType&outcome_id=$SubmitOutcomeId&workflow_id=$($OriginalRow.WorkflowID)&workflow_step=$($OriginalRow.WorkflowStep)"
-                        $StatusResp = Invoke-RestMethod -Uri $StatusUri -Method Get -Headers $Headers
+                        # Dynamically resolve the Status that pairs with that Outcome on this workflow step (cached per submit run)
+                        $StatusCacheKey = "$CurrentTicketType|$SubmitOutcomeId|$WorkflowIdInt|$($OriginalRow.WorkflowStep)"
+                        if ($StatusCache.ContainsKey($StatusCacheKey)) {
+                            $StatusResp = $StatusCache[$StatusCacheKey]
+                        } else {
+                            $StatusUri = "$HaloUrl/api/Status?type=ticket&excludepending=true&excludeclosed=true&tickettype_id=$CurrentTicketType&outcome_id=$SubmitOutcomeId&workflow_id=$($OriginalRow.WorkflowID)&workflow_step=$($OriginalRow.WorkflowStep)"
+                            $StatusResp = Invoke-RestMethod -Uri $StatusUri -Method Get -Headers $Headers
+                            $StatusCache[$StatusCacheKey] = $StatusResp
+                        }
                         $SubmitStatus = ($StatusResp | Where-Object { $_.name -match 'Open|In Progress' } | Select-Object -First 1).id
 
                         if (-not $SubmitStatus) {
