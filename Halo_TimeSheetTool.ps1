@@ -48,6 +48,9 @@ $HaloUrl = "https://theinstillery.halopsa.com"
                 <DataGridTextColumn Header="ID" Binding="{Binding TicketID}" IsReadOnly="True" Width="50">
                     <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
+                <DataGridTextColumn Header="Type" Binding="{Binding TicketType}" IsReadOnly="True" Width="105">
+                    <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" IsReadOnly="True" Width="*" MinWidth="100">
                     <DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/><Setter Property="VerticalAlignment" Value="Center"/></Style></DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -163,15 +166,17 @@ $Global:LoadedDates = @{}
 # HELPER FUNCTION: Recalculate Totals
 $UpdateTotals = {
     $TMon = 0; $TTue = 0; $TWed = 0; $TThu = 0; $TFri = 0; $TSat = 0; $TSun = 0
-    foreach ($Row in $TimesheetGrid.ItemsSource) {
-        $M = 0; [double]::TryParse($Row.Mon, [ref]$M) | Out-Null; $TMon += $M
-        $T = 0; [double]::TryParse($Row.Tue, [ref]$T) | Out-Null; $TTue += $T
-        $W = 0; [double]::TryParse($Row.Wed, [ref]$W) | Out-Null; $TWed += $W
-        $Th= 0; [double]::TryParse($Row.Thu, [ref]$Th)| Out-Null; $TThu += $Th
-        $F = 0; [double]::TryParse($Row.Fri, [ref]$F) | Out-Null; $TFri += $F
-        $Sa= 0; [double]::TryParse($Row.Sat, [ref]$Sa)| Out-Null; $TSat += $Sa
-        $Su= 0; [double]::TryParse($Row.Sun, [ref]$Su)| Out-Null; $TSun += $Su
-        $Row.Total = $M + $T + $W + $Th + $F + $Sa + $Su
+    if ($null -ne $TimesheetGrid.ItemsSource) {
+        foreach ($Row in $TimesheetGrid.ItemsSource) {
+            $M = 0; [double]::TryParse($Row.Mon, [ref]$M) | Out-Null; $TMon += $M
+            $T = 0; [double]::TryParse($Row.Tue, [ref]$T) | Out-Null; $TTue += $T
+            $W = 0; [double]::TryParse($Row.Wed, [ref]$W) | Out-Null; $TWed += $W
+            $Th= 0; [double]::TryParse($Row.Thu, [ref]$Th)| Out-Null; $TThu += $Th
+            $F = 0; [double]::TryParse($Row.Fri, [ref]$F) | Out-Null; $TFri += $F
+            $Sa= 0; [double]::TryParse($Row.Sat, [ref]$Sa)| Out-Null; $TSat += $Sa
+            $Su= 0; [double]::TryParse($Row.Sun, [ref]$Su)| Out-Null; $TSun += $Su
+            $Row.Total = $M + $T + $W + $Th + $F + $Sa + $Su
+        }
     }
     $TotMon.Text = $TMon; $TotTue.Text = $TTue; $TotWed.Text = $TWed
     $TotThu.Text = $TThu; $TotFri.Text = $TFri; $TotSat.Text = $TSat; $TotSun.Text = $TSun
@@ -198,7 +203,7 @@ function Show-OverrideInputBox {
     <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
             Height="415" Width="480" WindowStartupLocation="CenterScreen"
-            ResizeMode="NoResize" Topmost="True">
+            ResizeMode="NoResize">
         <Grid Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -237,7 +242,7 @@ function Show-OverrideInputBox {
 "@
     $InputReader = (New-Object System.Xml.XmlNodeReader $InputXAML)
     $InputWindow = [Windows.Markup.XamlReader]::Load($InputReader)
-
+    if ($null -ne $Window -and $Window.IsLoaded) { $InputWindow.Owner = $Window }
     $InputWindow.Title = $Title
     $InputWindow.FindName("PromptTextBlock").Text = $PromptMessage
 
@@ -253,8 +258,8 @@ function Show-OverrideInputBox {
     $PopupCombo = $InputWindow.FindName("PopupChargeCodeCombo")
     $PopupCombo.ItemsSource = $ChargeCodes
 
-    if ($SelectedChargeCode -and ($ChargeCodes | Where-Object { [string]$_.ID -eq [string]$SelectedChargeCode })) {
-        $PopupCombo.SelectedValue = $SelectedChargeCode
+    if (-not [string]::IsNullOrWhiteSpace($SelectedChargeCode) -and ($ChargeCodes | Where-Object { [string]$_.ID -eq [string]$SelectedChargeCode })) {
+        $PopupCombo.SelectedValue = [string]$SelectedChargeCode
     } elseif ($null -ne $ChargeCodes -and $ChargeCodes.Count -gt 0) {
         $PopupCombo.SelectedIndex = 0
     }
@@ -274,7 +279,7 @@ function Show-OverrideInputBox {
     $Result = $InputWindow.ShowDialog()
 
     if ($Result) {
-        $ChosenChargeCode = if ($PopupCombo.SelectedValue) { [string]$PopupCombo.SelectedValue } else { $SelectedChargeCode }
+        $ChosenChargeCode = if ($null -ne $PopupCombo.SelectedValue -and [string]$PopupCombo.SelectedValue -ne "") { [string]$PopupCombo.SelectedValue } else { $SelectedChargeCode }
         return @{
             Note       = $InputTextBox.Text
             ChargeCode = $ChosenChargeCode
@@ -334,7 +339,7 @@ function Show-HowItWorksWindow {
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Fetch Existing Time (Slower):</Run> Pulls historical logged hours for the week from HaloPSA into the grid cells.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">Show All Tickets:</Run> By default, the tool shows Project (Type 20) &amp; Consulting (Type 100) tickets. Check this to load all assigned open tickets.
+                                - <Run FontWeight="Bold">Show All Tickets:</Run> By default, the tool shows Project (Type 20), Consulting (Type 100), Service Request (Type 3), &amp; Evergreen (Type 114) tickets. Check this to load all assigned open tickets.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -344,11 +349,11 @@ function Show-HowItWorksWindow {
                         <StackPanel>
                             <TextBlock Text="[3] Charge Codes &amp; Notes Management" FontSize="14" FontWeight="Bold" Foreground="#333"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#444" FontSize="12">
-                                - <Run FontWeight="Bold">Per-Ticket Charge Code:</Run> Each ticket row has its own Charge Code dropdown, populated from the full HaloPSA charge code list. It defaults to your own agent charge rate where available, otherwise the first available code.
+                                - <Run FontWeight="Bold">Per-Ticket Charge Code:</Run> Each ticket row has its own Charge Code dropdown, populated from the full HaloPSA charge code list (or bulk-set all rows via the bottom 'Charge Code' + 'Apply to All Rows' controls). It defaults to your own agent charge rate where available, otherwise the first available code.
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Ticket Note Column:</Run> Enter specific notes per ticket directly up front in the grid. Blank notes fall back to the 'Default Note' box.
                                 <LineBreak/><LineBreak/>
-                                - <Run FontWeight="Bold">0.25 Time Block Enforcement:</Run> All time entries must be in 15-minute (0.25h) increments. Any entry that isn't will be rejected with a warning and skipped on submit.
+                                - <Run FontWeight="Bold">0.25 Time Block Enforcement:</Run> All added time entries must be in 15-minute (0.25h) increments. Any entry that isn't will be rejected with a warning and skipped on submit.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -372,6 +377,8 @@ function Show-HowItWorksWindow {
                         <StackPanel>
                             <TextBlock Text="[5] Tool Limitations" FontSize="14" FontWeight="Bold" Foreground="#721C24"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#721C24" FontSize="12">
+                                - <Run FontWeight="Bold">Workflow Action Requirement:</Run> Tickets require a matching 'Note' or 'Add Time' action on their current workflow step (Service Request &amp; Evergreen tickets keep their current status and post privately).
+                                <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">Adding Time Only:</Run> You can add time to any day where your entered value exceeds existing hours.
                                 <LineBreak/><LineBreak/>
                                 - <Run FontWeight="Bold">No Reduction/Deletion:</Run> You cannot reduce hours or delete historical time entries via this tool. Modifications to past entries must be performed directly in HaloPSA.
@@ -403,6 +410,7 @@ function Show-HowItWorksWindow {
 "@
     $HelpReader = (New-Object System.Xml.XmlNodeReader $HelpXAML)
     $HelpWindow = [Windows.Markup.XamlReader]::Load($HelpReader)
+    if ($null -ne $Window -and $Window.IsLoaded) { $HelpWindow.Owner = $Window }
     
     $CloseBtn = $HelpWindow.FindName("CloseHelpBtn")
     $CloseBtn.Add_Click({ $HelpWindow.Close() })
@@ -443,6 +451,7 @@ $LoadBtn.Add_Click({
         $agentResp = Invoke-RestMethod -Uri $agentUri -Method Get -Headers $Headers
         $AgentID = $agentResp.id
         $AgentChargeRate = $agentResp.chargerate
+        $AgentChargeRateStr = if ($null -ne $AgentChargeRate) { [string]$AgentChargeRate } else { "" }
     } catch {
         $ErrMsg = if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
         $StatusText.Text = "Failed to retrieve agent details. $ErrMsg"
@@ -457,23 +466,27 @@ $LoadBtn.Add_Click({
         $LookupUri = "$HaloUrl/api/lookup?lookupid=17"
         $LookupResp = Invoke-RestMethod -Uri $LookupUri -Method Get -Headers $Headers
 
-        foreach ($Item in $LookupResp) {
-            # Halo Lookups usually return id and name. We map them cleanly for the ComboBox.
+        foreach ($Item in ($LookupResp | Where-Object { -not $_.inactive })) {
+            # Store ID as string so "0" ("No Charge") matches reliably across WPF ComboBoxes
             $ChargeCodeOptions += [PSCustomObject]@{
-                ID = $Item.id
+                ID = [string]$Item.id
                 Name = $Item.name
             }
         }
 
         if ($ChargeCodeOptions.Count -gt 0) {
-            $DefaultChargeCodeID = if ($ChargeCodeOptions.ID -contains $AgentChargeRate) { $AgentChargeRate } else { $ChargeCodeOptions[0].ID }
+            $DefaultChargeCodeID = if (-not [string]::IsNullOrEmpty($AgentChargeRateStr) -and ($ChargeCodeOptions.ID -contains $AgentChargeRateStr)) {
+                $AgentChargeRateStr
+            } else {
+                $ChargeCodeOptions[0].ID
+            }
         }
     } catch {
         Write-Warning "Failed to load charge codes. $_"
     }
 
     $BulkChargeCodeCombo.ItemsSource = $ChargeCodeOptions
-    if ($DefaultChargeCodeID) {
+    if ($null -ne $DefaultChargeCodeID -and [string]$DefaultChargeCodeID -ne "") {
         $BulkChargeCodeCombo.SelectedValue = $DefaultChargeCodeID
     } elseif ($ChargeCodeOptions.Count -gt 0) {
         $BulkChargeCodeCombo.SelectedIndex = 0
@@ -482,7 +495,7 @@ $LoadBtn.Add_Click({
     $SelectedDate = $WeekPicker.SelectedDate
     $Offset = if ($SelectedDate.DayOfWeek -eq 'Sunday') { 6 } else { [int]$SelectedDate.DayOfWeek - 1 }
     $Monday = $SelectedDate.AddDays(-$Offset).Date
-    $Sunday = $Monday.AddDays(6).AddHours(23).AddMinutes(59)
+    $WeekEnd = $Monday.AddDays(7)
     
     $Global:LoadedDates = @{
         "Mon" = $Monday; "Tue" = $Monday.AddDays(1); "Wed" = $Monday.AddDays(2);
@@ -493,12 +506,24 @@ $LoadBtn.Add_Click({
         $Uri = "$HaloUrl/api/Tickets?pageinate=false&agent_id=$AgentID&open_only=true&columns_id=104"
         $Response = Invoke-RestMethod -Uri $Uri -Method Get -Headers $Headers
         
+        $SupportedTicketTypeIds = @(20, 100, 3, 114)
         if ($FetchAllTicketsChk.IsChecked) {
-            $Tickets = $Response.tickets
+            $Tickets = @($Response.tickets)
         } else {
-            # Filter to just Project Tickets (20) and Consulting Tickets (100)
-            $Tickets = $Response.tickets | Where-Object { $_.tickettype_id -eq 20 -or $_.tickettype_id -eq 100 }
+            # Filter to supported ticket types: Project (20), Consulting (100), Service Request (3), Evergreen (114)
+            $Tickets = @($Response.tickets | Where-Object { $SupportedTicketTypeIds -contains [int]$_.tickettype_id })
         }
+
+        # Deduplicate tickets by ID (Halo's /api/Tickets queue response can include duplicate ticket rows)
+        $SeenIds = @{}
+        $Tickets = @($Tickets | Where-Object {
+            if ($null -ne $_.id -and -not $SeenIds.ContainsKey($_.id)) {
+                $SeenIds[$_.id] = $true
+                $true
+            } else {
+                $false
+            }
+        })
 
         if ($null -eq $Tickets -or $Tickets.Count -eq 0) {
             $StatusText.Text = "No tickets found for the selected criteria."
@@ -513,6 +538,8 @@ $LoadBtn.Add_Click({
         $GridData = @()
         $Global:OriginalData = @()
         $CurrentTicketNum = 1
+        $ActionFetchErrors = 0
+        $FailedActionTickets = @()
 
         foreach ($Ticket in $Tickets) {
             # Start hours at 0
@@ -525,13 +552,13 @@ $LoadBtn.Add_Click({
                 [System.Windows.Forms.Application]::DoEvents()
 
                 try {
-                    $ActionsUri = "$HaloUrl/api/Actions?ticket_id=$($Ticket.id)&agentonly=true"
+                    $ActionsUri = "$HaloUrl/api/Actions?ticket_id=$($Ticket.id)&agentonly=true&pageinate=false"
                     $ActionsResp = Invoke-RestMethod -Uri $ActionsUri -Method Get -Headers $Headers
                     $ActionsList = $ActionsResp.actions | Where-Object {$_.who_agentid -eq $AgentID}
 
                     foreach ($Act in $ActionsList) {
                         $ActDate = ([datetime]$Act.datetime).ToLocalTime()
-                        if ($ActDate -ge $Monday -and $ActDate -le $Sunday -and $Act.timetaken -gt 0) {
+                        if ($ActDate -ge $Monday -and $ActDate -lt $WeekEnd -and $Act.timetaken -gt 0) {
                             $Hours = [math]::Round($Act.timetaken, 2)
                             switch ($ActDate.DayOfWeek) {
                                 'Monday'    { $MonHrs += $Hours }
@@ -544,21 +571,56 @@ $LoadBtn.Add_Click({
                             }
                         }
                     }
-                } catch { }
+                } catch {
+                    $ActionFetchErrors++
+                    $FailedActionTickets += $Ticket.id
+                    Write-Warning "Failed to fetch existing actions for Ticket $($Ticket.id): $_"
+                }
             }
             $CurrentTicketNum++
+
+            $TypeId = [int]$Ticket.tickettype_id
+            $TicketTypeName = switch ($TypeId) {
+                20      { "Project" }
+                100     { "Consulting" }
+                3       { "Service Request" }
+                114     { "Evergreen" }
+                default {
+                    if (-not [string]::IsNullOrWhiteSpace($Ticket.tickettype_name)) {
+                        $Ticket.tickettype_name
+                    } else {
+                        "Type $TypeId"
+                    }
+                }
+            }
+
+            # Strip project code prefix only on Project/Consulting tickets; handle numeric-leading Project task names safely
+            $FormattedSummary = if ($TypeId -eq 20) {
+                if ($Ticket.summary -match "^[^-]+-\s*\d+\s*-\s*(.+)$") {
+                    $Matches[1].Trim()
+                } elseif ($Ticket.summary -match "-\s+(\D.*)$") {
+                    $Matches[1].Trim()
+                } else {
+                    $Ticket.summary
+                }
+            } elseif ($TypeId -eq 100 -and ($Ticket.summary -match "-\s+(\D.*)$")) {
+                $Matches[1].Trim()
+            } else {
+                $Ticket.summary
+            }
 
             # Map the new properties directly from the ticket object
             $RowObj = [PSCustomObject]@{
                 TicketID      = $Ticket.id
-                TicketTypeID  = $Ticket.tickettype_id
+                TicketTypeID  = $TypeId
+                TicketType    = $TicketTypeName
                 WorkflowID    = $Ticket.workflow_id
                 WorkflowStep  = $Ticket.workflow_step
                 ClientID      = $Ticket.client_id
                 ContractID    = if ($null -ne $Ticket.contract_id) { $Ticket.contract_id } else { -1 }
                 ClientName    = if ($Ticket.client_name) { $Ticket.client_name } else { "Unassigned" }
                 Project       = if ($Ticket.parent_subject) { $Ticket.parent_subject -replace " - Parent Project", '' } else { "None" }
-                TicketSummary = if ($Ticket.summary -match "-\s+(\D.*)$") { $Matches[1].Trim() } else { $Ticket.summary }
+                TicketSummary = $FormattedSummary
                 HasOverride   = $false
                 TicketNote    = ""
                 ChargeCodeOptions  = $ChargeCodeOptions
@@ -585,8 +647,13 @@ $LoadBtn.Add_Click({
         
         &$UpdateTotals 
         
-        $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd'))."
-        $StatusText.Foreground = "Green"
+        if ($ActionFetchErrors -gt 0) {
+            $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd')) (Warning: failed to fetch existing time for $ActionFetchErrors ticket(s): $($FailedActionTickets -join ', '))."
+            $StatusText.Foreground = "DarkOrange"
+        } else {
+            $StatusText.Text = "Loaded $($Tickets.Count) tickets for the week of $($Monday.ToString('yyyy-MM-dd'))."
+            $StatusText.Foreground = "Green"
+        }
 
     } catch {
         $StatusText.Text = "API Error: $_"
@@ -596,10 +663,13 @@ $LoadBtn.Add_Click({
 
 # 4b. Bulk-Apply Charge Code Button Event
 $ApplyBulkChargeCodeBtn.Add_Click({
-    if (-not $TimesheetGrid.ItemsSource -or -not $BulkChargeCodeCombo.SelectedValue) { return }
+    if ($null -eq $TimesheetGrid.ItemsSource -or $null -eq $BulkChargeCodeCombo.SelectedValue -or [string]$BulkChargeCodeCombo.SelectedValue -eq "") { return }
+
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Cell, $true) | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Row, $true) | Out-Null
 
     foreach ($Row in $TimesheetGrid.ItemsSource) {
-        $Row.SelectedChargeCode = $BulkChargeCodeCombo.SelectedValue
+        $Row.SelectedChargeCode = [string]$BulkChargeCodeCombo.SelectedValue
     }
 
     try { $TimesheetGrid.Items.Refresh() } catch { }
@@ -607,7 +677,8 @@ $ApplyBulkChargeCodeBtn.Add_Click({
 
 # 5. Submit Button Event
 $SubmitBtn.Add_Click({
-    $TimesheetGrid.CommitEdit() | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Cell, $true) | Out-Null
+    $TimesheetGrid.CommitEdit([System.Windows.Controls.DataGridEditingUnit]::Row, $true) | Out-Null
 
     $StatusText.Text = "Calculating and posting time entries..."
     $StatusText.Foreground = "Blue"
@@ -626,9 +697,12 @@ $SubmitBtn.Add_Click({
     $ErrorCount = 0
     $TokenExpired = $false
     $UserCancelled = $false
+    $WorkflowCache = @{}
+    $StatusCache = @{}
 
     :RowLoop foreach ($CurrentRow in $CurrentData) {
-        $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID }
+        $OriginalRow = $Global:OriginalData | Where-Object { $_.TicketID -eq $CurrentRow.TicketID } | Select-Object -First 1
+        if ($null -eq $OriginalRow) { continue }
         
         $Days = @("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         foreach ($Day in $Days) {
@@ -636,28 +710,34 @@ $SubmitBtn.Add_Click({
             if (-not [double]::TryParse($CurrentRow.$Day, [ref]$CurrentVal)) {
                 $StatusText.Text = "Warning: Invalid number detected in Ticket $($CurrentRow.TicketID) on $Day. Skipped."
                 $StatusText.Foreground = "DarkOrange"
+                $InvalidMsg = "Invalid number '$($CurrentRow.$Day)' detected in Ticket $($CurrentRow.TicketID) on $Day.`n`nThis entry was skipped."
+                [System.Windows.MessageBox]::Show($InvalidMsg, "Invalid Time Entry", 0, 48)
+                $ErrorCount++
                 continue 
             }
 
-            if (([decimal]$CurrentVal % [decimal]0.25) -ne 0) {
-                $WarnMsg = "Time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day was skipped."
+            $OriginalVal = [double]($OriginalRow.$Day)
+            $Diff = [math]::Round([decimal]$CurrentVal - [decimal]$OriginalVal, 4)
+
+            if ($Diff -eq 0) { continue }
+
+            if ($Diff -gt 0 -and (($Diff % [decimal]0.25) -ne 0)) {
+                $WarnMsg = "Added time must be in increments of 0.25.`n`nTicket $($CurrentRow.TicketID) on $Day (+$Diff hrs) was skipped."
                 [System.Windows.MessageBox]::Show($WarnMsg, "Invalid Time Entry", 0, 48)
                 $ErrorCount++
                 continue
             }
-            
-            $OriginalVal = [double]($OriginalRow.$Day)
-            $Diff = $CurrentVal - $OriginalVal
 
             if ($Diff -gt 0) {
-                $HoursToLog = $Diff
+                $HoursToLog = [double]$Diff
                 $EntryHour = 17
                 $EntryMinute = 0
 
-                # Charge Rate comes from this row's Charge Code selector
-                # (Outcome ID and Status are resolved dynamically from the ticket's workflow just before posting)
-                $CurrentTicketType    = $OriginalRow.TicketTypeID
-                $DefaultChargeRate    = if ($CurrentRow.SelectedChargeCode) { [string]$CurrentRow.SelectedChargeCode } else { "30" }
+                # Charge Rate comes from this row's Charge Code selector (preserving "0" No Charge)
+                # Outcome ID is resolved dynamically from workflow (with fallback 108 for Service Request / Evergreen)
+                $CurrentTicketType    = [int]$OriginalRow.TicketTypeID
+                $IsServiceTicket      = ($CurrentTicketType -eq 3 -or $CurrentTicketType -eq 114)
+                $DefaultChargeRate    = if ($null -ne $CurrentRow.SelectedChargeCode -and [string]$CurrentRow.SelectedChargeCode -ne "") { [string]$CurrentRow.SelectedChargeCode } else { "30" }
                 $AvailableChargeCodes = $CurrentRow.ChargeCodeOptions
 
                 # Determine base note: custom ticket note up front if specified, otherwise General Default Note
@@ -666,25 +746,45 @@ $SubmitBtn.Add_Click({
                 $FinalChargeRate = $DefaultChargeRate
 
                 try {
-                    # Dynamically resolve the Outcome ID from the ticket's current workflow step
-                    $WorkflowUri = "$HaloUrl/api/workflow/$($CurrentRow.WorkflowID)"
-                    $WorkflowResp = Invoke-RestMethod -Uri $WorkflowUri -Method Get -Headers $Headers
+                    # Dynamically resolve the Outcome ID from the ticket's current workflow step (cached per submit run)
+                    $MatchedAction = $null
+                    $WorkflowIdInt = 0
+                    if ([int]::TryParse([string]$OriginalRow.WorkflowID, [ref]$WorkflowIdInt) -and $WorkflowIdInt -gt 0) {
+                        if ($WorkflowCache.ContainsKey($WorkflowIdInt)) {
+                            $WorkflowResp = $WorkflowCache[$WorkflowIdInt]
+                        } else {
+                            $WorkflowUri = "$HaloUrl/api/workflow/$WorkflowIdInt"
+                            $WorkflowResp = Invoke-RestMethod -Uri $WorkflowUri -Method Get -Headers $Headers
+                            $WorkflowCache[$WorkflowIdInt] = $WorkflowResp
+                        }
 
-                    $MatchedStep = $WorkflowResp.steps | Where-Object { $_.step_id -eq $OriginalRow.WorkflowStep }
-                    $MatchedAction = $MatchedStep.actions | Where-Object { $_.action_name -match '(Project|Private|Internal) Note|Add Time' } | Select-Object -First 1
+                        if ($null -ne $WorkflowResp -and $null -ne $WorkflowResp.steps) {
+                            $MatchedStep = $WorkflowResp.steps | Where-Object { $_.step_id -eq $OriginalRow.WorkflowStep }
+                            if ($null -ne $MatchedStep) {
+                                if ($IsServiceTicket) {
+                                    $MatchedAction = $MatchedStep.actions | Where-Object { [string]$_.action_id -eq "108" } | Select-Object -First 1
+                                }
+                                if (-not $MatchedAction) {
+                                    $MatchedAction = $MatchedStep.actions | Where-Object { $_.action_name -match '(Project|Private|Internal) Note|Add Time' } | Select-Object -First 1
+                                }
+                            }
+                        }
+                    }
 
-                    if (-not $MatchedAction) {
+                    if ($MatchedAction) {
+                        $SubmitOutcomeId = [string]$MatchedAction.action_id
+                    } elseif ($IsServiceTicket) {
+                        $SubmitOutcomeId = "108"
+                    } else {
                         throw "No 'Note' or 'Add Time' action is available on the current workflow step for Ticket $($CurrentRow.TicketID)."
                     }
 
-                    $SubmitOutcomeId = $MatchedAction.action_id
-
                     # LIC actions post with no status change and a fixed charge rate
-                    $IsLicAction = $MatchedAction.action_name -match '^LIC'
+                    $IsLicAction = ($null -ne $MatchedAction -and $MatchedAction.action_name -match '^LIC')
 
                     # TARGETED OVERRIDE LOGIC (Triggers ONLY if Override checkbox is checked for this entry/row)
                     if ($CurrentRow.HasOverride) {
-                        $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
+                        $PromptMsg = "OVERRIDE for Ticket $($CurrentRow.TicketID) ($($CurrentRow.TicketType)) on $Day ($Diff hrs):`nProject: $($CurrentRow.Project)`nSummary: $($CurrentRow.TicketSummary)"
 
                         # Resolve a charge-code list specific to this ticket's client/contract/outcome for the override picker
                         $OverrideChargeCodes = $AvailableChargeCodes
@@ -692,8 +792,8 @@ $SubmitBtn.Add_Click({
                             $OverrideLookupUri = "$HaloUrl/api/lookup?lookupid=17&use=0&client_id=$($OriginalRow.ClientID)&contract_id=$($OriginalRow.ContractID)&outcome_id=$SubmitOutcomeId&tickettype_id=$CurrentTicketType"
                             $OverrideLookupResp = Invoke-RestMethod -Uri $OverrideLookupUri -Method Get -Headers $Headers
                             $OverrideLookupData = @()
-                            foreach ($Item in $OverrideLookupResp) {
-                                $OverrideLookupData += [PSCustomObject]@{ ID = $Item.id; Name = $Item.name }
+                            foreach ($Item in ($OverrideLookupResp | Where-Object { -not $_.inactive })) {
+                                $OverrideLookupData += [PSCustomObject]@{ ID = [string]$Item.id; Name = $Item.name }
                             }
                             if ($OverrideLookupData.Count -gt 0) { $OverrideChargeCodes = $OverrideLookupData }
                         } catch { }
@@ -701,8 +801,8 @@ $SubmitBtn.Add_Click({
                         $OverrideResult = Show-OverrideInputBox -Title "Time Entry Override ($Day)" -PromptMessage $PromptMsg -DefaultNote $BaseNote -ChargeCodes $OverrideChargeCodes -SelectedChargeCode $DefaultChargeRate -DefaultHour $EntryHour -DefaultMinute $EntryMinute
 
                         if ($null -ne $OverrideResult) {
-                            if ($OverrideResult.Note) { $FinalNote = $OverrideResult.Note }
-                            if ($OverrideResult.ChargeCode) { $FinalChargeRate = $OverrideResult.ChargeCode }
+                            $FinalNote = $OverrideResult.Note
+                            if ($null -ne $OverrideResult.ChargeCode -and [string]$OverrideResult.ChargeCode -ne "") { $FinalChargeRate = [string]$OverrideResult.ChargeCode }
                             $EntryHour = $OverrideResult.Hour
                             $EntryMinute = $OverrideResult.Minute
                         } else {
@@ -717,15 +817,24 @@ $SubmitBtn.Add_Click({
                         }
                     }
 
-                    $EntryDate = $Global:LoadedDates[$Day].AddHours($EntryHour).AddMinutes($EntryMinute).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss")
+                    $EntryDate = $Global:LoadedDates[$Day].AddHours($EntryHour).AddMinutes($EntryMinute).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
                     if ($IsLicAction) {
                         $SubmitStatus = $null
                         $FinalChargeRate = "0"
+                    } elseif ($IsServiceTicket) {
+                        # Service Request (3) & Evergreen (114) omit new_status so existing ticket status stays unchanged
+                        $SubmitStatus = $null
                     } else {
-                        # Dynamically resolve the Status that pairs with that Outcome on this workflow step
-                        $StatusUri = "$HaloUrl/api/Status?type=ticket&excludepending=true&excludeclosed=true&tickettype_id=$CurrentTicketType&outcome_id=$SubmitOutcomeId&workflow_id=$($OriginalRow.WorkflowID)&workflow_step=$($OriginalRow.WorkflowStep)"
-                        $StatusResp = Invoke-RestMethod -Uri $StatusUri -Method Get -Headers $Headers
+                        # Dynamically resolve the Status that pairs with that Outcome on this workflow step (cached per submit run)
+                        $StatusCacheKey = "$CurrentTicketType|$SubmitOutcomeId|$WorkflowIdInt|$($OriginalRow.WorkflowStep)"
+                        if ($StatusCache.ContainsKey($StatusCacheKey)) {
+                            $StatusResp = $StatusCache[$StatusCacheKey]
+                        } else {
+                            $StatusUri = "$HaloUrl/api/Status?type=ticket&excludepending=true&excludeclosed=true&tickettype_id=$CurrentTicketType&outcome_id=$SubmitOutcomeId&workflow_id=$($OriginalRow.WorkflowID)&workflow_step=$($OriginalRow.WorkflowStep)"
+                            $StatusResp = Invoke-RestMethod -Uri $StatusUri -Method Get -Headers $Headers
+                            $StatusCache[$StatusCacheKey] = $StatusResp
+                        }
                         $SubmitStatus = ($StatusResp | Where-Object { $_.name -match 'Open|In Progress' } | Select-Object -First 1).id
 
                         if (-not $SubmitStatus) {
@@ -733,16 +842,24 @@ $SubmitBtn.Add_Click({
                         }
                     }
 
+                    $ParsedRate = 0
+                    $ChargeRateValue = if ([int]::TryParse($FinalChargeRate, [ref]$ParsedRate)) { $ParsedRate } else { $FinalChargeRate }
+
                     $ActionObj = @{
                         ticket_id     = $CurrentRow.TicketID
                         note          = $FinalNote
                         timetaken     = $HoursToLog
                         datetime      = $EntryDate
                         outcome_id    = $SubmitOutcomeId
-                        chargerate    = $FinalChargeRate
+                        chargerate    = $ChargeRateValue
                     }
-                    if (-not $IsLicAction) {
-                        $ActionObj.new_status = $SubmitStatus
+                    if ($null -ne $SubmitStatus) {
+                        $ActionObj["new_status"] = $SubmitStatus
+                    }
+                    if ($IsServiceTicket) {
+                        $ActionObj["hiddenfromuser"] = $true
+                        $ActionObj["sendemail"]      = $false
+                        $ActionObj["new_slastatus"]  = -1
                     }
 
                     $ActionPayload = "[$($ActionObj | ConvertTo-Json -Compress)]"
